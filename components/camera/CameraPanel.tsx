@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import CameraView from './CameraView'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import ToggleSwitch from '@/components/ui/ToggleSwitch'
 import { getSettings } from '@/lib/settings'
 
 interface CameraPanelProps {
@@ -15,7 +14,6 @@ type Tab = 'camera' | 'upload'
 
 export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
   const [tab, setTab] = useState<Tab>('camera')
-  const [translate, setTranslate] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -38,7 +36,7 @@ export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: base64Jpeg,
-          translate,
+          translate: false,
           apiKey: geminiApiKey || undefined,
           baseUrl: geminiBaseUrl || undefined,
         }),
@@ -51,7 +49,7 @@ export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
     } finally {
       setProcessing(false)
     }
-  }, [translate, onResult])
+  }, [onResult])
 
   const handleCameraCapture = useCallback((base64Jpeg: string) => {
     sendOcr(base64Jpeg)
@@ -60,20 +58,16 @@ export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
     setError(null)
     setUploadPreview(null)
     setUploadBase64(null)
-
     const reader = new FileReader()
     reader.onload = () => {
       const dataUrl = reader.result as string
-      const base64 = dataUrl.split(',')[1]
       setUploadPreview(dataUrl)
-      setUploadBase64(base64)
+      setUploadBase64(dataUrl.split(',')[1])
     }
     reader.readAsDataURL(file)
-    // Reset input so same file can be re-selected
     e.target.value = ''
   }, [])
 
@@ -148,25 +142,16 @@ export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
             ))}
           </div>
 
-          {/* Translate toggle — shared between tabs */}
-          <div className="flex items-center justify-between px-4 pb-3 shrink-0">
-            <ToggleSwitch checked={translate} onChange={setTranslate} label="Terjemahkan ke Indonesia" />
-          </div>
-
           {/* Tab content */}
           <div className="flex-1 overflow-hidden">
             {tab === 'camera' ? (
               <CameraView
                 active={isOpen && tab === 'camera'}
-                translate={translate}
-                onTranslateChange={setTranslate}
                 onCapture={handleCameraCapture}
                 onError={setError}
               />
             ) : (
-              /* Upload tab */
               <div className="px-4 pb-4 space-y-4">
-                {/* Drop / pick zone */}
                 <button type="button" onClick={() => fileInputRef.current?.click()}
                   className={`w-full rounded-2xl border-2 border-dashed transition-colors flex flex-col items-center justify-center gap-2 py-8 px-4
                     ${uploadPreview ? 'border-sky-300 bg-sky-50' : 'border-slate-200 bg-slate-50 hover:border-sky-300 hover:bg-sky-50'}`}>
@@ -185,10 +170,7 @@ export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
                     </>
                   )}
                 </button>
-
-                {/* Hidden file input */}
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-
                 {uploadPreview && (
                   <div className="flex gap-2">
                     <button type="button" onClick={() => { setUploadPreview(null); setUploadBase64(null) }}
@@ -197,13 +179,7 @@ export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
                     </button>
                     <button type="button" onClick={handleUploadOcr} disabled={processing || !uploadBase64}
                       className="flex-1 h-10 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
-                      {processing
-                        ? <LoadingSpinner size="sm" className="border-sky-200 border-t-white" />
-                        : <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                            <path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5z" clipRule="evenodd" />
-                          </svg>
-                      }
-                      {processing ? (translate ? 'Menerjemahkan…' : 'Mengekstrak…') : 'Ekstrak Teks'}
+                      {processing ? <LoadingSpinner size="sm" className="border-sky-200 border-t-white" /> : 'Ekstrak Teks'}
                     </button>
                   </div>
                 )}
@@ -215,9 +191,7 @@ export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
           {processing && tab === 'camera' && (
             <div className="px-4 py-3 bg-sky-50 border-t border-sky-100 flex items-center gap-3 shrink-0">
               <LoadingSpinner size="sm" className="border-sky-200 border-t-sky-500" />
-              <p className="text-sm text-sky-700 font-medium">
-                {translate ? 'Mengekstrak dan menerjemahkan…' : 'Mengekstrak teks…'}
-              </p>
+              <p className="text-sm text-sky-700 font-medium">Mengekstrak teks…</p>
             </div>
           )}
 

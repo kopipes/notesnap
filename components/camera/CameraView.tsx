@@ -7,16 +7,12 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface CameraViewProps {
   active: boolean
-  translate: boolean
-  onTranslateChange: (v: boolean) => void
   onCapture: (base64Jpeg: string) => void
   onError: (msg: string) => void
 }
 
 export default function CameraView({
   active,
-  translate,
-  onTranslateChange,
   onCapture,
   onError,
 }: CameraViewProps) {
@@ -106,8 +102,8 @@ export default function CameraView({
     setZoom(z => Math.max(+(z - 0.5).toFixed(1), 1))
   }, [])
 
-  const { isStable, isCapturing, stabilityLevel, triggerManualCapture } =
-    useFrameSampler({ videoRef, active: active && camReady, onCapture })
+  const { isCapturing, triggerManualCapture } =
+    useFrameSampler({ videoRef, active: false, onCapture })
 
   if (permissionError) {
     return (
@@ -208,12 +204,8 @@ export default function CameraView({
 
       {/* Controls */}
       <CameraControls
-        translate={translate}
-        onTranslateChange={onTranslateChange}
-        onManualCapture={triggerManualCapture}
+        onCapture={triggerManualCapture}
         isCapturing={isCapturing}
-        isStable={isStable}
-        stabilityLevel={stabilityLevel}
         disabled={!camReady}
       />
     </div>
