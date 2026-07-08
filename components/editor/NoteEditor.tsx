@@ -139,10 +139,17 @@ export default function NoteEditor({
   }, [saveStatus, saveContent, showToast])
 
   // OCR result — use ref so it always has a live editor reference
-  const handleOcrResult = useCallback((markdown: string) => {
+  // Insert as plain text paragraphs, not raw markdown
+  const handleOcrResult = useCallback((text: string) => {
     const ed = editorRef.current
     if (!ed) return
-    ed.chain().focus().insertContentAt(ed.state.doc.content.size, markdown).run()
+    // Split into lines, filter blanks, insert each as a paragraph
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+    const content = lines.map(line => ({
+      type: 'paragraph',
+      content: [{ type: 'text', text: line }],
+    }))
+    ed.chain().focus().insertContentAt(ed.state.doc.content.size, content).run()
     setCameraOpen(false)
     showToast('Teks berhasil ditambahkan')
   }, [showToast])

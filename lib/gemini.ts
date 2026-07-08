@@ -1,12 +1,14 @@
 const OCR_PROMPT_EXTRACT = `You are an OCR assistant. Extract only the sermon text or bullet points visible in this image.
 Ignore backgrounds, decorations, speaker names, and church logos.
 Fix any typos or distortions caused by projector glare or camera angle.
-Return clean, formatted Markdown. Return only the Markdown — no explanation, no preamble.`
+Return plain text only. Do NOT use Markdown formatting — no asterisks, no hashes, no bullet symbols.
+Each line or point on its own line. Return only the text — no explanation, no preamble.`
 
 const OCR_PROMPT_TRANSLATE = `You are an OCR and translation assistant. Extract the sermon text or bullet points from this image,
 then translate them accurately into Indonesian (Bahasa Indonesia).
 Ignore backgrounds, decorations, and logos. Fix glare-related distortions.
-Return clean, formatted Markdown in Indonesian. Return only the Markdown — no explanation, no preamble.`
+Return plain text only. Do NOT use Markdown formatting — no asterisks, no hashes, no bullet symbols.
+Each line or point on its own line. Return only the text — no explanation, no preamble.`
 
 // Default model — works on ai.sumopod.com and other OpenAI-compatible Gemini proxies
 const DEFAULT_MODEL = 'gemini/gemini-2.5-flash'
