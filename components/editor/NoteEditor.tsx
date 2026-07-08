@@ -26,10 +26,30 @@ export default function NoteEditor({
   const [ayatOpen, setAyatOpen] = useState(false)
   const [cameraOpen, setCameraOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [toolbarBottom, setToolbarBottom] = useState(0)
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const titleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isMountedRef = useRef(true)
+
+  // Track visual viewport to follow keyboard on mobile
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+
+    function onResize() {
+      const keyboardHeight = window.innerHeight - (vv!.height + vv!.offsetTop)
+      setToolbarBottom(Math.max(0, keyboardHeight))
+    }
+
+    vv.addEventListener('resize', onResize)
+    vv.addEventListener('scroll', onResize)
+    onResize()
+    return () => {
+      vv.removeEventListener('resize', onResize)
+      vv.removeEventListener('scroll', onResize)
+    }
+  }, [])
 
   useEffect(() => {
     isMountedRef.current = true
@@ -149,9 +169,13 @@ export default function NoteEditor({
         </div>
       </div>
 
-      {/* Bottom toolbar — sits above keyboard on mobile */}
-      <div className="shrink-0 bg-white border-t border-slate-100 px-4 py-2 max-w-2xl mx-auto w-full"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}>
+      {/* Bottom toolbar — follows keyboard via visualViewport */}
+      <div
+        className="shrink-0 bg-white border-t border-slate-100 px-4 py-3 max-w-2xl mx-auto w-full transition-all duration-100"
+        style={{
+          paddingBottom: `max(env(safe-area-inset-bottom, 12px), 12px)`,
+          marginBottom: toolbarBottom,
+        }}>
         <div className="flex items-center justify-between">
           {/* Save status */}
           <span className="flex items-center gap-1.5 text-xs text-slate-400 select-none">
