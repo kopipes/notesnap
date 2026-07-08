@@ -6,6 +6,7 @@
   html {
     -webkit-tap-highlight-color: transparent;
     scroll-behavior: smooth;
+    color-scheme: light;
   }
 
   body {
@@ -83,39 +84,4 @@
   float: left;
   height: 0;
   pointer-events: none;
-}
-
-/* ─── Dark mode ─── */
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: rgb(15 23 42);   /* slate-900 */
-    color: rgb(226 232 240);           /* slate-200 */
-  }
-  .tiptap-editor h1, .tiptap-editor h2, .tiptap-editor h3 { color: rgb(241 245 249); }
-  .tiptap-editor p, .tiptap-editor li  { color: rgb(203 213 225); }
-  .tiptap-editor strong { color: rgb(248 250 252); }
-  .tiptap-editor code {
-    background-color: rgb(30 41 59);
-    color: rgb(125 211 252);
-  }
-  .tiptap-editor hr { border-color: rgb(51 65 85); }
-
-  .bible-verse-node { background-color: rgb(12 74 110 / 0.2); }
-  .bible-verse-node p { color: rgb(186 230 253); }
-  .bible-verse-node cite { color: rgb(56 189 248); }
-
-  .slash-command-menu {
-    background-color: rgb(15 23 42);
-    border-color: rgb(51 65 85);
-  }
-  .slash-command-item { color: rgb(203 213 225); }
-  .slash-command-item:hover { background-color: rgb(30 41 59); }
-  .slash-command-item.is-selected {
-    background-color: rgb(12 74 110 / 0.35);
-    color: rgb(125 211 252);
-  }
-
-  .tiptap-editor p.is-editor-empty:first-child::before {
-    color: rgb(71 85 105); /* slate-600 */
-  }
 }
