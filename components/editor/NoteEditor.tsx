@@ -8,6 +8,7 @@ import { BibleVerseExtension } from './BibleVerseExtension'
 import { createSlashCommandExtension } from './SlashCommandExtension'
 import AyatDialog from './AyatDialog'
 import CameraPanel from '@/components/camera/CameraPanel'
+import type { Editor } from '@tiptap/react'
 
 interface NoteEditorProps {
   noteId: string
@@ -31,17 +32,17 @@ export default function NoteEditor({
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const titleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isMountedRef = useRef(true)
+  // Always-current reference to the editor instance
+  const editorRef = useRef<Editor | null>(null)
 
   // Track visual viewport to follow keyboard on mobile
   useEffect(() => {
     const vv = window.visualViewport
     if (!vv) return
-
     function onResize() {
-      const keyboardHeight = window.innerHeight - (vv!.height + vv!.offsetTop)
-      setToolbarBottom(Math.max(0, keyboardHeight))
+      const kbHeight = window.innerHeight - (vv!.height + vv!.offsetTop)
+      setToolbarBottom(Math.max(0, kbHeight))
     }
-
     vv.addEventListener('resize', onResize)
     vv.addEventListener('scroll', onResize)
     onResize()
@@ -94,14 +95,6 @@ export default function NoteEditor({
     titleTimerRef.current = setTimeout(() => saveTitle(e.target.value), AUTOSAVE_DELAY)
   }
 
-  const handleOcrResult = useCallback((markdown: string) => {
-    if (!editor) return
-    editor.chain().focus().insertContentAt(editor.state.doc.content.size, markdown).run()
-    setCameraOpen(false)
-    showToast('Teks berhasil ditambahkan')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showToast])
-
   const slashExt = createSlashCommandExtension(() => setAyatOpen(true))
 
   const editor = useEditor({
@@ -116,7 +109,6 @@ export default function NoteEditor({
       : '',
     editorProps: {
       attributes: {
-        // No padding here — outer card provides it
         class: 'tiptap-editor focus:outline-none min-h-[40vh]',
       },
     },
@@ -127,6 +119,11 @@ export default function NoteEditor({
     },
   })
 
+  // Keep ref in sync with the latest editor instance
+  useEffect(() => {
+    editorRef.current = editor ?? null
+  }, [editor])
+
   useEffect(() => () => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     if (titleTimerRef.current) clearTimeout(titleTimerRef.current)
@@ -134,18 +131,29 @@ export default function NoteEditor({
 
   // Manual save — fires immediately, cancels any pending debounce
   const handleManualSave = useCallback(async () => {
-    if (!editor || saveStatus === 'saving') return
+    const ed = editorRef.current
+    if (!ed || saveStatus === 'saving') return
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-    await saveContent(JSON.stringify(editor.getJSON()))
+    await saveContent(JSON.stringify(ed.getJSON()))
     showToast('Catatan disimpan')
-  }, [editor, saveStatus, saveContent, showToast])
+  }, [saveStatus, saveContent, showToast])
+
+  // OCR result — use ref so it always has a live editor reference
+  const handleOcrResult = useCallback((markdown: string) => {
+    const ed = editorRef.current
+    if (!ed) return
+    ed.chain().focus().insertContentAt(ed.state.doc.content.size, markdown).run()
+    setCameraOpen(false)
+    showToast('Teks berhasil ditambahkan')
+  }, [showToast])
 
   const insertBibleVerse = useCallback((text: string, reference: string) => {
-    if (!editor) return
-    editor.chain().focus().insertContent({
+    const ed = editorRef.current
+    if (!ed) return
+    ed.chain().focus().insertContent({
       type: 'bibleVerse', attrs: { reference }, content: [{ type: 'text', text }],
     }).run()
-  }, [editor])
+  }, [])
 
   return (
     <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
