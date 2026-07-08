@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+@layer components {
+  /* ─── Tiptap editor ─── */
+  .tiptap-editor {
+    @apply outline-none min-h-[200px];
+  }
+
+  .tiptap-editor h1 { @apply text-2xl font-bold mt-5 mb-2 text-slate-900; }
+  .tiptap-editor h2 { @apply text-xl font-semibold mt-4 mb-2 text-slate-800; }
+  .tiptap-editor h3 { @apply text-lg font-semibold mt-3 mb-1 text-slate-800; }
+  .tiptap-editor p  { @apply mb-2 text-slate-700 leading-relaxed; }
+  .tiptap-editor ul { @apply list-disc pl-5 mb-2 space-y-1; }
+  .tiptap-editor ol { @apply list-decimal pl-5 mb-2 space-y-1; }
+  .tiptap-editor li { @apply text-slate-700; }
+  .tiptap-editor strong { @apply font-semibold text-slate-900; }
+  .tiptap-editor em    { @apply italic; }
+
+  .tiptap-editor code {
+    @apply bg-slate-100 text-sky-700 rounded-md px-1.5 py-0.5 text-[0.85em] font-mono;
+  }
+  .tiptap-editor hr {
+    @apply my-5 border-slate-200;
+  }
+
+  /* ─── Bible verse node ─── */
+  .bible-verse-node {
+    @apply relative border-l-[3px] border-sky-400 pl-4 my-4 py-3 pr-3
+           bg-sky-50 rounded-r-xl;
+  }
+  .bible-verse-node p {
+    @apply mb-1 italic text-slate-600 text-sm leading-relaxed;
+  }
+  .bible-verse-node cite {
+    @apply text-xs font-semibold text-sky-600 not-italic tracking-wide;
+  }
+
+  /* ─── Slash command dropdown ─── */
+  .slash-command-menu {
+    @apply bg-white border border-slate-200 rounded-2xl shadow-xl
+           overflow-hidden z-50 min-w-[240px] py-1;
+    box-shadow: 0 8px 32px -4px rgb(0 0 0 / 0.12), 0 2px 8px -2px rgb(0 0 0 / 0.06);
+  }
+  .slash-command-item {
+    @apply px-3 py-2.5 text-sm cursor-pointer flex items-center gap-3
+           text-slate-700 transition-colors duration-100;
+  }
+  .slash-command-item:hover {
+    @apply bg-slate-50;
+  }
+  .slash-command-item.is-selected {
+    @apply bg-sky-50 text-sky-700;
+  }
+}
+
+/* ─── Tiptap placeholder ─── */
+.tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: rgb(148 163 184); /* slate-400 */
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ─── Dark mode ─── */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: rgb(15 23 42);   /* slate-900 */
+    color: rgb(226 232 240);           /* slate-200 */
+  }
+  .tiptap-editor h1, .tiptap-editor h2, .tiptap-editor h3 { color: rgb(241 245 249); }
+  .tiptap-editor p, .tiptap-editor li  { color: rgb(203 213 225); }
+  .tiptap-editor strong { color: rgb(248 250 252); }
+  .tiptap-editor code {
+    background-color: rgb(30 41 59);
+    color: rgb(125 211 252);
+  }
+  .tiptap-editor hr { border-color: rgb(51 65 85); }
+
+  .bible-verse-node { background-color: rgb(12 74 110 / 0.2); }
+  .bible-verse-node p { color: rgb(186 230 253); }
+  .bible-verse-node cite { color: rgb(56 189 248); }
+
+  .slash-command-menu {
+    background-color: rgb(15 23 42);
+    border-color: rgb(51 65 85);
+  }
+  .slash-command-item { color: rgb(203 213 225); }
+  .slash-command-item:hover { background-color: rgb(30 41 59); }
+  .slash-command-item.is-selected {
+    background-color: rgb(12 74 110 / 0.35);
+    color: rgb(125 211 252);
+  }
+
+  .tiptap-editor p.is-editor-empty:first-child::before {
+    color: rgb(71 85 105); /* slate-600 */
+  }
+}
