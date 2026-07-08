@@ -130,8 +130,52 @@ export default function NoteEditor({
   return (
     <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
 
-      {/* Title card — sticky, never scrolls */}
-      <div className="shrink-0 px-4 pt-4 pb-3 max-w-2xl mx-auto w-full">
+      {/* Sticky toolbar — always visible at top */}
+      <div className="shrink-0 bg-white border-b border-slate-100 px-4 py-2 max-w-2xl mx-auto w-full">
+        <div className="flex items-center justify-between">
+          {/* Save status */}
+          <span className="flex items-center gap-1.5 text-xs text-slate-400 select-none">
+            {saveStatus === 'saving' && <><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />Menyimpan…</>}
+            {saveStatus === 'saved'  && <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />Tersimpan</>}
+            {saveStatus === 'unsaved'&& <><span className="w-1.5 h-1.5 rounded-full bg-slate-300" />Belum tersimpan</>}
+          </span>
+
+          <div className="flex items-center gap-1">
+            {/* Manual save */}
+            {saveStatus === 'unsaved' && (
+              <button type="button" onClick={handleManualSave} aria-label="Simpan sekarang"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white transition-colors shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                  <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
+                </svg>
+                Simpan
+              </button>
+            )}
+            {/* Bible verse */}
+            <button type="button" onClick={() => setAyatOpen(true)} aria-label="Sisipkan ayat"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:text-sky-600 hover:bg-sky-50 active:bg-sky-100 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                <path d="M11.25 4.533A9.707 9.707 0 006 3a9.735 9.735 0 00-3.25.555.75.75 0 00-.5.707v14.25a.75.75 0 001 .707A8.237 8.237 0 016 18.75c1.995 0 3.823.707 5.25 1.886V4.533zM12.75 20.636A8.214 8.214 0 0118 18.75c.966 0 1.89.166 2.75.47a.75.75 0 001-.708V4.262a.75.75 0 00-.5-.707A9.735 9.735 0 0018 3a9.707 9.707 0 00-5.25 1.533v16.103z" />
+              </svg>
+              Ayat
+            </button>
+            {/* Camera / Upload */}
+            <button type="button" onClick={() => setCameraOpen(v => !v)} aria-label="Kamera OCR"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors
+                ${cameraOpen ? 'bg-sky-100 text-sky-600' : 'text-slate-500 hover:text-sky-600 hover:bg-sky-50 active:bg-sky-100'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                <path d="M12 9a3.75 3.75 0 100 7.5A3.75 3.75 0 0012 9z" />
+                <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 015.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 01-3 3h-15a3 3 0 01-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 001.11-.71l.822-1.315a2.942 2.942 0 012.332-1.39zM6.75 12.75a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0zm12-1.5a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+              </svg>
+              Kamera
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Scrollable content — title + body */}
+      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-10 max-w-2xl mx-auto w-full space-y-3">
+        {/* Title card */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 pt-5 pb-4">
           <input
             type="text"
@@ -140,53 +184,10 @@ export default function NoteEditor({
             placeholder="Judul catatan"
             className="w-full text-2xl font-bold leading-snug bg-transparent border-none outline-none text-slate-900 placeholder-slate-200 tracking-tight"
           />
-
-          {/* Toolbar */}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
-            {/* Save status */}
-            <span className="flex items-center gap-1.5 text-xs text-slate-400 select-none">
-              {saveStatus === 'saving' && <><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />Menyimpan…</>}
-              {saveStatus === 'saved'  && <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />Tersimpan</>}
-              {saveStatus === 'unsaved'&& <><span className="w-1.5 h-1.5 rounded-full bg-slate-300" />Belum tersimpan</>}
-            </span>
-
-            <div className="flex items-center gap-1">
-              {/* Manual save — only shown when unsaved */}
-              {saveStatus === 'unsaved' && (
-                <button type="button" onClick={handleManualSave} aria-label="Simpan sekarang"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white transition-colors shadow-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
-                    <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
-                  </svg>
-                  Simpan
-                </button>
-              )}
-              {/* Bible verse */}
-              <button type="button" onClick={() => setAyatOpen(true)} aria-label="Sisipkan ayat"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:text-sky-600 hover:bg-sky-50 active:bg-sky-100 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                  <path d="M11.25 4.533A9.707 9.707 0 006 3a9.735 9.735 0 00-3.25.555.75.75 0 00-.5.707v14.25a.75.75 0 001 .707A8.237 8.237 0 016 18.75c1.995 0 3.823.707 5.25 1.886V4.533zM12.75 20.636A8.214 8.214 0 0118 18.75c.966 0 1.89.166 2.75.47a.75.75 0 001-.708V4.262a.75.75 0 00-.5-.707A9.735 9.735 0 0018 3a9.707 9.707 0 00-5.25 1.533v16.103z" />
-                </svg>
-                Ayat
-              </button>
-              {/* Camera / Upload */}
-              <button type="button" onClick={() => setCameraOpen(v => !v)} aria-label="Kamera OCR"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors
-                  ${cameraOpen ? 'bg-sky-100 text-sky-600' : 'text-slate-500 hover:text-sky-600 hover:bg-sky-50 active:bg-sky-100'}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                  <path d="M12 9a3.75 3.75 0 100 7.5A3.75 3.75 0 0012 9z" />
-                  <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 015.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 01-3 3h-15a3 3 0 01-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 001.11-.71l.822-1.315a2.942 2.942 0 012.332-1.39zM6.75 12.75a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0zm12-1.5a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
-                </svg>
-                Kamera
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
 
-      {/* Content card — only this area scrolls */}
-      <div className="flex-1 overflow-y-auto px-4 pb-10 max-w-2xl mx-auto w-full">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-5 min-h-full">
+        {/* Content card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-5 min-h-[40vh]">
           <EditorContent editor={editor} />
         </div>
       </div>
