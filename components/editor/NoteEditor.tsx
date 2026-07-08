@@ -128,11 +128,10 @@ export default function NoteEditor({
   }, [editor])
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 overflow-y-auto">
-      {/* Outer padding — generous on all sides */}
-      <div className="flex-1 px-4 pt-4 pb-10 max-w-2xl mx-auto w-full space-y-3">
+    <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
 
-        {/* Title card */}
+      {/* Title card — sticky, never scrolls */}
+      <div className="shrink-0 px-4 pt-4 pb-3 max-w-2xl mx-auto w-full">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 pt-5 pb-4">
           <input
             type="text"
@@ -183,12 +182,13 @@ export default function NoteEditor({
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Content card */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-5">
+      {/* Content card — only this area scrolls */}
+      <div className="flex-1 overflow-y-auto px-4 pb-10 max-w-2xl mx-auto w-full">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-5 min-h-full">
           <EditorContent editor={editor} />
         </div>
-
       </div>
 
       {/* Camera */}
