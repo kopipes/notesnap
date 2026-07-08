@@ -37,7 +37,7 @@ export default function NotePage({ params }: { params: { id: string } }) {
 
   return (
     // Full-screen, no bottom nav on editor page
-    <main className="flex flex-col h-[100dvh] bg-white">
+    <main className="fixed inset-0 flex flex-col bg-white">
       {/* Top nav bar */}
       <nav className="flex items-center justify-between px-4 border-b border-slate-100 bg-white/95 backdrop-blur-sm safe-top shrink-0 h-12">
         <button type="button" onClick={() => router.push('/')}
