@@ -26,7 +26,7 @@ export default function SettingsTab() {
   const router = useRouter()
   const [form, setForm] = useState<AppSettings>({
     geminiApiKey: '',
-    geminiBaseUrl: 'https://generativelanguage.googleapis.com',
+    geminiBaseUrl: 'https://ai.sumopod.com',
   })
   const [saved, setSaved] = useState(false)
   const [showKey, setShowKey] = useState(false)
@@ -134,7 +134,7 @@ export default function SettingsTab() {
               </label>
               <input id="baseUrl" type="url" value={form.geminiBaseUrl}
                 onChange={e => handleChange('geminiBaseUrl', e.target.value)}
-                placeholder="https://generativelanguage.googleapis.com"
+                placeholder="https://ai.sumopod.com"
                 autoComplete="off" spellCheck={false}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-mono text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-400 transition-colors"
               />

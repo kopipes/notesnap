@@ -10,7 +10,7 @@ const STORAGE_KEY = 'notesnap_settings'
 
 const DEFAULTS: AppSettings = {
   geminiApiKey: '',
-  geminiBaseUrl: 'https://generativelanguage.googleapis.com',
+  geminiBaseUrl: 'https://ai.sumopod.com',
 }
 
 export function getSettings(): AppSettings {
