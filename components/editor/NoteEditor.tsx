@@ -130,8 +130,28 @@ export default function NoteEditor({
   return (
     <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
 
-      {/* Sticky toolbar — always visible at top */}
-      <div className="shrink-0 bg-white border-b border-slate-100 px-4 py-2 max-w-2xl mx-auto w-full">
+      {/* Scrollable content — title + body */}
+      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 max-w-2xl mx-auto w-full space-y-3">
+        {/* Title card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 pt-5 pb-4">
+          <input
+            type="text"
+            value={title}
+            onChange={handleTitleChange}
+            placeholder="Judul catatan"
+            className="w-full text-2xl font-bold leading-snug bg-transparent border-none outline-none text-slate-900 placeholder-slate-200 tracking-tight"
+          />
+        </div>
+
+        {/* Content card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-5 min-h-[40vh]">
+          <EditorContent editor={editor} />
+        </div>
+      </div>
+
+      {/* Bottom toolbar — sits above keyboard on mobile */}
+      <div className="shrink-0 bg-white border-t border-slate-100 px-4 py-2 max-w-2xl mx-auto w-full"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}>
         <div className="flex items-center justify-between">
           {/* Save status */}
           <span className="flex items-center gap-1.5 text-xs text-slate-400 select-none">
@@ -173,25 +193,6 @@ export default function NoteEditor({
         </div>
       </div>
 
-      {/* Scrollable content — title + body */}
-      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-10 max-w-2xl mx-auto w-full space-y-3">
-        {/* Title card */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 pt-5 pb-4">
-          <input
-            type="text"
-            value={title}
-            onChange={handleTitleChange}
-            placeholder="Judul catatan"
-            className="w-full text-2xl font-bold leading-snug bg-transparent border-none outline-none text-slate-900 placeholder-slate-200 tracking-tight"
-          />
-        </div>
-
-        {/* Content card */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-5 min-h-[40vh]">
-          <EditorContent editor={editor} />
-        </div>
-      </div>
-
       {/* Camera */}
       {cameraOpen && <CameraPanel onClose={() => setCameraOpen(false)} onResult={handleOcrResult} />}
       {/* Ayat */}
@@ -200,7 +201,7 @@ export default function NoteEditor({
       {/* Toast */}
       {toast && (
         <div role="status" aria-live="polite"
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg pointer-events-none whitespace-nowrap">
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg pointer-events-none whitespace-nowrap">
           {toast}
         </div>
       )}
