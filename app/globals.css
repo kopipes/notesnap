@@ -12,6 +12,8 @@
   body {
     @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100;
     font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -30,27 +32,47 @@
     @apply outline-none min-h-[200px];
   }
 
-  .tiptap-editor h1 { @apply text-2xl font-bold mt-5 mb-2 text-slate-900 dark:text-slate-50; }
-  .tiptap-editor h2 { @apply text-xl font-semibold mt-4 mb-2 text-slate-800 dark:text-slate-100; }
-  .tiptap-editor h3 { @apply text-lg font-semibold mt-3 mb-1 text-slate-800 dark:text-slate-100; }
-  .tiptap-editor p  { @apply mb-2 text-slate-700 dark:text-slate-300 leading-relaxed; }
-  .tiptap-editor ul { @apply list-disc pl-5 mb-2 space-y-1; }
-  .tiptap-editor ol { @apply list-decimal pl-5 mb-2 space-y-1; }
-  .tiptap-editor li { @apply text-slate-700 dark:text-slate-300; }
-  .tiptap-editor strong { @apply font-semibold text-slate-900 dark:text-slate-50; }
-  .tiptap-editor em    { @apply italic; }
-
+  .tiptap-editor h1 {
+    @apply text-2xl font-bold mt-6 mb-3 text-slate-900 dark:text-slate-50 tracking-tight;
+  }
+  .tiptap-editor h2 {
+    @apply text-xl font-semibold mt-5 mb-2 text-slate-800 dark:text-slate-100 tracking-tight;
+  }
+  .tiptap-editor h3 {
+    @apply text-lg font-semibold mt-4 mb-1.5 text-slate-800 dark:text-slate-100;
+  }
+  .tiptap-editor p {
+    @apply mb-3 text-slate-700 dark:text-slate-300 leading-[1.75] text-[15px];
+  }
+  .tiptap-editor ul {
+    @apply list-disc pl-5 mb-3 space-y-1.5;
+  }
+  .tiptap-editor ol {
+    @apply list-decimal pl-5 mb-3 space-y-1.5;
+  }
+  .tiptap-editor li {
+    @apply text-slate-700 dark:text-slate-300 leading-relaxed text-[15px];
+  }
+  .tiptap-editor strong {
+    @apply font-semibold text-slate-900 dark:text-slate-50;
+  }
+  .tiptap-editor em {
+    @apply italic text-slate-600 dark:text-slate-400;
+  }
+  .tiptap-editor blockquote {
+    @apply border-l-4 border-slate-300 dark:border-slate-600 pl-4 my-4 italic text-slate-500 dark:text-slate-400;
+  }
   .tiptap-editor code {
     @apply bg-slate-100 dark:bg-slate-800 text-sky-700 dark:text-sky-400 rounded-md px-1.5 py-0.5 text-[0.85em] font-mono;
   }
   .tiptap-editor hr {
-    @apply my-5 border-slate-200 dark:border-slate-700;
+    @apply my-6 border-slate-200 dark:border-slate-700;
   }
 
   /* ─── Bible verse node ─── */
   .bible-verse-node {
-    @apply relative border-l-[3px] border-sky-400 pl-4 my-4 py-3 pr-3
-           bg-sky-50 dark:bg-sky-950/50 rounded-r-xl;
+    @apply relative border-l-[3px] border-sky-400 dark:border-sky-500 pl-4 my-5 py-3 pr-4
+           bg-gradient-to-r from-sky-50 to-transparent dark:from-sky-950/40 dark:to-transparent rounded-r-xl;
   }
   .bible-verse-node p {
     @apply mb-1 italic text-slate-600 dark:text-slate-400 text-sm leading-relaxed;
@@ -61,33 +83,33 @@
 
   /* ─── Slash command dropdown ─── */
   .slash-command-menu {
-    @apply bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl
-           overflow-hidden z-50 min-w-[240px] py-1;
-    box-shadow: 0 8px 32px -4px rgb(0 0 0 / 0.12), 0 2px 8px -2px rgb(0 0 0 / 0.06);
+    @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl overflow-hidden z-50 min-w-[240px] py-1;
+    box-shadow: 0 8px 32px -4px rgb(0 0 0 / 0.14), 0 2px 12px -2px rgb(0 0 0 / 0.08);
   }
   .slash-command-item {
     @apply px-3 py-2.5 text-sm cursor-pointer flex items-center gap-3
            text-slate-700 dark:text-slate-300 transition-colors duration-100;
   }
   .slash-command-item:hover {
-    @apply bg-slate-50 dark:bg-slate-700/60;
+    @apply bg-slate-50 dark:bg-slate-800/60;
   }
   .slash-command-item.is-selected {
-    @apply bg-sky-50 dark:bg-sky-900/50 text-sky-700 dark:text-sky-400;
+    @apply bg-sky-50 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300;
   }
 }
 
 /* ─── Tiptap placeholder ─── */
 .tiptap-editor p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  color: rgb(148 163 184); /* slate-400 */
+  color: rgb(203 213 225); /* slate-300 */
   float: left;
   height: 0;
   pointer-events: none;
+  font-style: italic;
 }
 
 @media (prefers-color-scheme: dark) {
   .tiptap-editor p.is-editor-empty:first-child::before {
-    color: rgb(71 85 105); /* slate-600 */
+    color: rgb(51 65 85); /* slate-700 */
   }
 }

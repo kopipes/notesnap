@@ -38,14 +38,15 @@ export default function NotesTab() {
           {/* Title row */}
           <div className="h-14 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-sky-500 flex items-center justify-center shrink-0">
+              {/* Logo */}
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center shrink-0 shadow-sm shadow-sky-500/30">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-4 h-4">
                   <path d="M11.25 4.533A9.707 9.707 0 006 3a9.735 9.735 0 00-3.25.555.75.75 0 00-.5.707v14.25a.75.75 0 001 .707A8.237 8.237 0 016 18.75c1.995 0 3.823.707 5.25 1.886V4.533zM12.75 20.636A8.214 8.214 0 0118 18.75c.966 0 1.89.166 2.75.47a.75.75 0 001-.708V4.262a.75.75 0 00-.5-.707A9.735 9.735 0 0018 3a9.707 9.707 0 00-5.25 1.533v16.103z" />
                 </svg>
               </div>
               <div>
-                <h1 className="text-sm font-bold text-slate-900 dark:text-slate-50 leading-none">NoteSnap</h1>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-none mt-0.5">Catatan Khotbah</p>
+                <h1 className="text-sm font-bold text-slate-900 dark:text-slate-50 leading-none tracking-tight">NoteSnap</h1>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-none mt-0.5 font-medium">Catatan Khotbah</p>
               </div>
             </div>
 
@@ -72,7 +73,7 @@ export default function NotesTab() {
           <div className="pb-3">
             <div className="relative">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 pointer-events-none">
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 dark:text-slate-500 pointer-events-none">
                 <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clipRule="evenodd" />
               </svg>
               <input
@@ -81,13 +82,13 @@ export default function NotesTab() {
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Cari catatan…"
                 aria-label="Cari catatan"
-                className="w-full pl-9 pr-9 py-2 rounded-xl text-sm bg-slate-100 dark:bg-slate-800 border border-transparent focus:border-sky-400 dark:focus:border-sky-600 focus:bg-white dark:focus:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-colors"
+                className="w-full pl-9 pr-9 py-2.5 rounded-xl text-sm bg-slate-100 dark:bg-slate-800/80 border border-transparent focus:border-sky-400 dark:focus:border-sky-600 focus:bg-white dark:focus:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all"
               />
               {searchQuery && (
                 <button type="button" onClick={() => setSearchQuery('')}
                   aria-label="Hapus pencarian"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-slate-300 dark:bg-slate-600 text-white hover:bg-slate-400 dark:hover:bg-slate-500 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5">
                     <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
                   </svg>
                 </button>
@@ -98,7 +99,7 @@ export default function NotesTab() {
       </header>
 
       {/* List */}
-      <div className="flex-1 max-w-lg mx-auto w-full px-5 py-4">
+      <div className="flex-1 max-w-lg mx-auto w-full px-4 py-4">
         <NoteList searchQuery={searchQuery} />
       </div>
 
@@ -107,14 +108,7 @@ export default function NotesTab() {
         onClick={createNote}
         disabled={creating}
         aria-label="Buat catatan baru"
-        className="
-          fixed right-5 z-20 w-14 h-14 rounded-2xl
-          bg-sky-500 hover:bg-sky-600 active:bg-sky-700
-          text-white shadow-xl shadow-sky-500/30
-          flex items-center justify-center
-          disabled:opacity-70 active:scale-95
-          transition-all duration-150
-        "
+        className="fixed right-5 z-20 w-14 h-14 rounded-2xl bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white shadow-xl shadow-sky-500/40 flex items-center justify-center disabled:opacity-70 active:scale-95 transition-all duration-150"
         style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}
       >
         {creating
