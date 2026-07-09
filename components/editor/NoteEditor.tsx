@@ -1,6 +1,6 @@
 'use client'
 
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
@@ -11,6 +11,50 @@ import CameraPanel from '@/components/camera/CameraPanel'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { getSettings } from '@/lib/settings'
 import type { Editor } from '@tiptap/react'
+
+// ─── Offline save queue ───────────────────────────────────────────────────────
+const QUEUE_KEY = 'notesnap_save_queue'
+
+interface QueuedSave {
+  noteId: string
+  field: 'content' | 'title'
+  value: string
+  ts: number
+}
+
+function enqueueSave(item: QueuedSave) {
+  try {
+    const raw = localStorage.getItem(QUEUE_KEY)
+    const queue: QueuedSave[] = raw ? JSON.parse(raw) : []
+    // Replace existing entry for same noteId+field
+    const filtered = queue.filter(q => !(q.noteId === item.noteId && q.field === item.field))
+    filtered.push(item)
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(filtered))
+  } catch { /* storage full or unavailable */ }
+}
+
+function dequeueAll(): QueuedSave[] {
+  try {
+    const raw = localStorage.getItem(QUEUE_KEY)
+    if (!raw) return []
+    const queue: QueuedSave[] = JSON.parse(raw)
+    localStorage.removeItem(QUEUE_KEY)
+    return queue
+  } catch { return [] }
+}
+
+async function flushQueue() {
+  const queue = dequeueAll()
+  for (const item of queue) {
+    try {
+      await fetch(`/api/notes/${item.noteId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [item.field]: item.value }),
+      })
+    } catch { /* re-enqueue on failure */ enqueueSave(item) }
+  }
+}
 
 /** Extract plain text from a Tiptap JSON node, preserving bibleVerse references. */
 function extractTextFromNode(node: Record<string, unknown>): string {
@@ -57,13 +101,27 @@ export default function NoteEditor({
   const [summarizing, setSummarizing] = useState(false)
   const [summaryError, setSummaryError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [shared, setShared] = useState(false)
   const [confirmPending, setConfirmPending] = useState<'new' | 'retry' | null>(null)
+  const [isOnline, setIsOnline] = useState(true)
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const titleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isMountedRef = useRef(true)
-  // Always-current reference to the editor instance
   const editorRef = useRef<Editor | null>(null)
+
+  // Online/offline detection — flush queued saves when back online
+  useEffect(() => {
+    setIsOnline(navigator.onLine)
+    const handleOnline = () => { setIsOnline(true); flushQueue() }
+    const handleOffline = () => setIsOnline(false)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
   // Track visual viewport to follow keyboard on mobile
   useEffect(() => {
@@ -94,6 +152,11 @@ export default function NoteEditor({
 
   const saveContent = useCallback(async (content: string) => {
     if (!isMountedRef.current) return
+    if (!navigator.onLine) {
+      enqueueSave({ noteId, field: 'content', value: content, ts: Date.now() })
+      if (isMountedRef.current) setSaveStatus('unsaved')
+      return
+    }
     setSaveStatus('saving')
     try {
       const res = await fetch(`/api/notes/${noteId}`, {
@@ -104,11 +167,19 @@ export default function NoteEditor({
       if (!res.ok) throw new Error('Gagal menyimpan')
       if (isMountedRef.current) setSaveStatus('saved')
     } catch {
-      if (isMountedRef.current) { setSaveStatus('unsaved'); showToast('Gagal menyimpan') }
+      if (isMountedRef.current) {
+        enqueueSave({ noteId, field: 'content', value: content, ts: Date.now() })
+        setSaveStatus('unsaved')
+        showToast('Offline — tersimpan lokal')
+      }
     }
   }, [noteId, showToast])
 
   const saveTitle = useCallback(async (val: string) => {
+    if (!navigator.onLine) {
+      enqueueSave({ noteId, field: 'title', value: val, ts: Date.now() })
+      return
+    }
     try {
       await fetch(`/api/notes/${noteId}`, {
         method: 'PATCH',
@@ -116,7 +187,9 @@ export default function NoteEditor({
         body: JSON.stringify({ title: val }),
       })
       onTitleChange?.(val)
-    } catch { /* non-blocking */ }
+    } catch {
+      enqueueSave({ noteId, field: 'title', value: val, ts: Date.now() })
+    }
   }, [noteId, onTitleChange])
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -246,6 +319,31 @@ export default function NoteEditor({
     }
   }, [summary, showToast])
 
+  const handleShareSummary = useCallback(async () => {
+    if (!summary) return
+    const shareText = `${title}\n\n${summary}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text: shareText })
+        setShared(true)
+        setTimeout(() => setShared(false), 2500)
+      } catch (err) {
+        // User cancelled share — not an error
+        if (err instanceof Error && err.name !== 'AbortError') showToast('Gagal berbagi')
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareText)
+        setShared(true)
+        setTimeout(() => setShared(false), 2500)
+        showToast('Disalin ke clipboard')
+      } catch {
+        showToast('Gagal berbagi')
+      }
+    }
+  }, [summary, title, showToast])
+
   // Expose handleOpenSummary to parent (top nav button)
   useEffect(() => {
     onSummaryTrigger?.(handleOpenSummary)
@@ -297,6 +395,72 @@ export default function NoteEditor({
   return (
     <div className="flex flex-col bg-slate-50 dark:bg-slate-950">
 
+      {/* Offline banner */}
+      {!isOnline && (
+        <div className="bg-amber-500 text-white text-xs font-semibold text-center py-1.5 px-4 flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 shrink-0">
+            <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+          </svg>
+          Offline — perubahan tersimpan lokal, akan disinkronkan saat online
+        </div>
+      )}
+
+      {/* Bubble menu — appears on text selection */}
+      {editor && (
+        <BubbleMenu
+          editor={editor}
+          tippyOptions={{ duration: 100, placement: 'top' }}
+          shouldShow={({ editor: ed, from, to }) => {
+            return from !== to && !ed.isActive('bibleVerse')
+          }}
+        >
+          <div className="flex items-center gap-0.5 bg-slate-900 dark:bg-slate-800 rounded-xl shadow-xl px-1.5 py-1.5 border border-slate-700/50">
+            <button
+              type="button"
+              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleBold().run() }}
+              className={`w-8 h-7 rounded-lg text-sm font-bold transition-colors ${editor.isActive('bold') ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
+              aria-label="Bold"
+            >B</button>
+            <button
+              type="button"
+              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleItalic().run() }}
+              className={`w-8 h-7 rounded-lg text-sm italic font-serif transition-colors ${editor.isActive('italic') ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
+              aria-label="Italic"
+            >I</button>
+            <button
+              type="button"
+              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleStrike().run() }}
+              className={`w-8 h-7 rounded-lg text-sm line-through transition-colors ${editor.isActive('strike') ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
+              aria-label="Strikethrough"
+            >S</button>
+            <div className="w-px h-4 bg-white/20 mx-0.5" />
+            <button
+              type="button"
+              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleHeading({ level: 1 }).run() }}
+              className={`px-2 h-7 rounded-lg text-xs font-bold transition-colors ${editor.isActive('heading', { level: 1 }) ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
+              aria-label="Heading 1"
+            >H1</button>
+            <button
+              type="button"
+              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleHeading({ level: 2 }).run() }}
+              className={`px-2 h-7 rounded-lg text-xs font-bold transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
+              aria-label="Heading 2"
+            >H2</button>
+            <div className="w-px h-4 bg-white/20 mx-0.5" />
+            <button
+              type="button"
+              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleBlockquote().run() }}
+              className={`w-8 h-7 rounded-lg text-sm transition-colors flex items-center justify-center ${editor.isActive('blockquote') ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
+              aria-label="Blockquote"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                <path fillRule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223 3.722 3.722 0 00-1.054-7.307z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </BubbleMenu>
+      )}
+
       {/* Scrollable content — title + body */}
       <div className="px-4 pt-5 pb-4 max-w-2xl mx-auto w-full space-y-3">
         {/* Title card */}
@@ -340,19 +504,25 @@ export default function NoteEditor({
         <div className="max-w-2xl mx-auto px-4 pt-2.5 flex items-center justify-between gap-2">
           {/* Save status pill */}
           <div className="flex items-center gap-1.5 text-xs font-medium select-none min-w-0">
-            {saveStatus === 'saving' && (
+            {!isOnline && (
+              <span className="flex items-center gap-1.5 text-amber-500 dark:text-amber-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                Offline
+              </span>
+            )}
+            {isOnline && saveStatus === 'saving' && (
               <span className="flex items-center gap-1.5 text-amber-500 dark:text-amber-400">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
                 Menyimpan…
               </span>
             )}
-            {saveStatus === 'saved' && (
+            {isOnline && saveStatus === 'saved' && (
               <span className="flex items-center gap-1.5 text-emerald-500 dark:text-emerald-400">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
                 Tersimpan
               </span>
             )}
-            {saveStatus === 'unsaved' && (
+            {isOnline && saveStatus === 'unsaved' && (
               <span className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500">
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0" />
                 Belum tersimpan
@@ -569,8 +739,17 @@ export default function NoteEditor({
                       {copied ? (
                         <><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>Tersalin!</>
                       ) : (
-                        <><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5zM4.875 6H7.5v-.375A3.375 3.375 0 0110.875 2.25h4.25A3.375 3.375 0 0118.5 5.625V6h2.625a.75.75 0 010 1.5H4.875a.75.75 0 010-1.5zM5.625 7.5c-.621 0-1.125.504-1.125 1.125v10.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V8.625c0-.621-.504-1.125-1.125-1.125H5.625z" clipRule="evenodd" /></svg>Salin Ringkasan</>
+                        <><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5zM4.875 6H7.5v-.375A3.375 3.375 0 0110.875 2.25h4.25A3.375 3.375 0 0118.5 5.625V6h2.625a.75.75 0 010 1.5H4.875a.75.75 0 010-1.5zM5.625 7.5c-.621 0-1.125.504-1.125 1.125v10.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V8.625c0-.621-.504-1.125-1.125-1.125H5.625z" clipRule="evenodd" /></svg>Salin</>
                       )}
+                    </button>
+                    <button type="button" onClick={handleShareSummary}
+                      className={`h-10 px-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${shared ? 'bg-emerald-500 text-white' : 'border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+                      {shared ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M15.75 4.5a3 3 0 11.825 2.066l-8.421 4.679a3.002 3.002 0 010 1.51l8.421 4.679a3 3 0 11-.729 1.31l-8.421-4.678a3 3 0 110-4.132l8.421-4.679a3 3 0 01-.096-.415z" clipRule="evenodd" /></svg>
+                      )}
+                      Bagikan
                     </button>
                     <button type="button" onClick={() => setConfirmPending('retry')}
                       className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm">
