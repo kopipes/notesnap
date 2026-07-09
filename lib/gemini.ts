@@ -167,7 +167,7 @@ export async function summarizeNote(
       { role: 'system', content: SUMMARY_PROMPT },
       { role: 'user', content: userMessage },
     ],
-    max_tokens: 4096,
+    max_tokens: 8192,
   }
 
   const res = await fetch(`${endpoint}/v1/chat/completions`, {
