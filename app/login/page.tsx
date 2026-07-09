@@ -39,11 +39,11 @@ function LoginForm() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Username */}
         <div className="space-y-1.5">
-          <label htmlFor="username" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+          <label htmlFor="username" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
             Username
           </label>
           <input
@@ -56,8 +56,8 @@ function LoginForm() {
             autoFocus
             required
             className="
-              w-full rounded-xl border border-slate-200 bg-slate-50
-              px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-300
+              w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800
+              px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-300 dark:placeholder-slate-600
               focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-400
               transition-colors
             "
@@ -66,7 +66,7 @@ function LoginForm() {
 
         {/* Password */}
         <div className="space-y-1.5">
-          <label htmlFor="password" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+          <label htmlFor="password" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
             Password
           </label>
           <div className="relative">
@@ -79,8 +79,8 @@ function LoginForm() {
               autoComplete="current-password"
               required
               className="
-                w-full rounded-xl border border-slate-200 bg-slate-50
-                px-3.5 py-2.5 pr-11 text-sm text-slate-900 placeholder-slate-300
+                w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800
+                px-3.5 py-2.5 pr-11 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-300 dark:placeholder-slate-600
                 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-400
                 transition-colors
               "
@@ -89,7 +89,7 @@ function LoginForm() {
               type="button"
               onClick={() => setShowPass((v) => !v)}
               aria-label={showPass ? 'Sembunyikan' : 'Tampilkan'}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
             >
               {showPass ? (
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -108,7 +108,7 @@ function LoginForm() {
 
         {/* Error */}
         {error && (
-          <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-xl">
+          <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 dark:bg-red-950/50 border border-red-100 dark:border-red-900 rounded-xl">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-red-400 shrink-0">
               <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
             </svg>
@@ -142,7 +142,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
@@ -151,13 +151,13 @@ export default function LoginPage() {
               <path d="M11.25 4.533A9.707 9.707 0 006 3a9.735 9.735 0 00-3.25.555.75.75 0 00-.5.707v14.25a.75.75 0 001 .707A8.237 8.237 0 016 18.75c1.995 0 3.823.707 5.25 1.886V4.533zM12.75 20.636A8.214 8.214 0 0118 18.75c.966 0 1.89.166 2.75.47a.75.75 0 001-.708V4.262a.75.75 0 00-.5-.707A9.735 9.735 0 0018 3a9.707 9.707 0 00-5.25 1.533v16.103z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">NoteSnap</h1>
-          <p className="text-sm text-slate-500 mt-1">Masuk untuk melanjutkan</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">NoteSnap</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Masuk untuk melanjutkan</p>
         </div>
 
         {/* Wrap form in Suspense — required by Next.js 14 for useSearchParams */}
         <Suspense fallback={
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex justify-center">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex justify-center">
             <LoadingSpinner size="md" className="border-slate-200 border-t-sky-500" />
           </div>
         }>

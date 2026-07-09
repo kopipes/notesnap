@@ -28,6 +28,7 @@ export default function SettingsTab() {
     geminiApiKey: '',
     geminiBaseUrl: 'https://ai.sumopod.com',
     cameraMode: 'balanced',
+    darkMode: false,
   })
   const [saved, setSaved] = useState(false)
   const [showKey, setShowKey] = useState(false)
@@ -71,9 +72,9 @@ export default function SettingsTab() {
   return (
     <div className="flex flex-col min-h-full">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200/60 safe-top">
+      <header className="sticky top-0 z-10 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 safe-top">
         <div className="max-w-lg mx-auto px-5 h-14 flex items-center">
-          <h1 className="text-sm font-bold text-slate-900">Pengaturan</h1>
+          <h1 className="text-sm font-bold text-slate-900 dark:text-slate-50">Pengaturan</h1>
         </div>
       </header>
 
@@ -81,63 +82,63 @@ export default function SettingsTab() {
 
         {/* Account info */}
         {me && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center shrink-0">
-              <span className="text-sky-600 font-bold text-sm uppercase">{me.username[0]}</span>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm px-5 py-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-sky-100 dark:bg-sky-900/50 flex items-center justify-center shrink-0">
+              <span className="text-sky-600 dark:text-sky-400 font-bold text-sm uppercase">{me.username[0]}</span>
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900 truncate">{me.username}</p>
-              <p className="text-xs text-slate-400 capitalize">{me.role}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{me.username}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 capitalize">{me.role}</p>
             </div>
           </div>
         )}
 
         {/* Gemini API section */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-sky-50 flex items-center justify-center shrink-0">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/50 flex items-center justify-center shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-sky-500">
                 <path fillRule="evenodd" d="M15.75 1.5a6.75 6.75 0 00-6.651 7.906c.067.39-.032.717-.221.906l-6.5 6.499a3 3 0 000 4.243 3 3 0 004.242 0 3 3 0 00.878-2.121v-2.129a.75.75 0 01.75-.75H12a.75.75 0 000-1.5H9a.75.75 0 01-.75-.75V9a.75.75 0 00-.75-.75H5.379a.75.75 0 01-.53-.22l-.879-.879A5.25 5.25 0 0115.75 1.5zm0 3a.75.75 0 000 1.5A2.25 2.25 0 0118 8.25a.75.75 0 001.5 0 3.75 3.75 0 00-3.75-3.75z" clipRule="evenodd" />
               </svg>
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900">Gemini API</p>
-              <p className="text-xs text-slate-400">Untuk fitur OCR kamera</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Gemini API</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">Untuk fitur OCR kamera</p>
             </div>
           </div>
           <div className="px-5 py-4 space-y-4">
             {/* API Key */}
             <div className="space-y-1.5">
-              <label htmlFor="apiKey" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">API Key</label>
+              <label htmlFor="apiKey" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">API Key</label>
               <div className="relative">
                 <input id="apiKey" type={showKey ? 'text' : 'password'} value={form.geminiApiKey}
                   onChange={e => handleChange('geminiApiKey', e.target.value)}
                   placeholder="AIzaSy…" autoComplete="off" spellCheck={false}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 pr-11 text-sm font-mono text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-400 transition-colors"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2.5 pr-11 text-sm font-mono text-slate-800 dark:text-slate-200 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-400 transition-colors"
                 />
                 <button type="button" onClick={() => setShowKey(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                   {showKey
                     ? <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M3.53 2.47a.75.75 0 00-1.06 1.06l18 18a.75.75 0 101.06-1.06l-18-18zM22.676 12.553a11.249 11.249 0 01-2.631 4.31l-3.099-3.099a5.25 5.25 0 00-6.71-6.71L7.759 4.577a11.217 11.217 0 014.242-.827c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113z" /><path d="M15.75 12c0 .18-.013.357-.037.53l-4.244-4.243A3.75 3.75 0 0115.75 12zM10.53 8.72l-4.899-4.9A11.26 11.26 0 001.323 11.44a1.45 1.45 0 000 1.12C2.813 16.776 7.027 20 12 20c1.84 0 3.567-.48 5.062-1.32l-3.584-3.584A3.75 3.75 0 018.25 12c0-.18.013-.357.037-.53z" /></svg>
                     : <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" /><path fillRule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113C21.186 17.023 16.97 20.25 12 20.25c-4.97 0-9.184-3.222-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z" clipRule="evenodd" /></svg>
                   }
                 </button>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 dark:text-slate-500">
                 Dapatkan kunci di{' '}
                 <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-sky-500 hover:underline font-medium">Google AI Studio</a>
               </p>
             </div>
             {/* Base URL */}
             <div className="space-y-1.5">
-              <label htmlFor="baseUrl" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                Base URL <span className="normal-case font-normal text-slate-400">(opsional)</span>
+              <label htmlFor="baseUrl" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                Base URL <span className="normal-case font-normal text-slate-400 dark:text-slate-500">(opsional)</span>
               </label>
               <input id="baseUrl" type="url" value={form.geminiBaseUrl}
                 onChange={e => handleChange('geminiBaseUrl', e.target.value)}
                 placeholder="https://ai.sumopod.com"
                 autoComplete="off" spellCheck={false}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-mono text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-400 transition-colors"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2.5 text-sm font-mono text-slate-800 dark:text-slate-200 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-400 transition-colors"
               />
             </div>
           </div>
@@ -153,17 +154,17 @@ export default function SettingsTab() {
         </div>
 
         {/* Camera OCR Mode */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-500">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-500 dark:text-slate-400">
                 <path d="M12 9a3.75 3.75 0 100 7.5A3.75 3.75 0 0012 9z" />
                 <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 015.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 01-3 3h-15a3 3 0 01-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 001.11-.71l.822-1.315a2.942 2.942 0 012.332-1.39zM6.75 12.75a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0zm12-1.5a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
               </svg>
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900">Mode Kamera OCR</p>
-              <p className="text-xs text-slate-400">Sesuaikan dengan kondisi pengambilan gambar</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Mode Kamera OCR</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">Sesuaikan dengan kondisi pengambilan gambar</p>
             </div>
           </div>
           <div className="px-5 py-4 space-y-2">
@@ -178,22 +179,22 @@ export default function SettingsTab() {
                 }}
                 className={`w-full flex items-start gap-3 px-4 py-3 rounded-xl border-2 text-left transition-all ${
                   form.cameraMode === mode.id
-                    ? 'border-sky-500 bg-sky-50'
-                    : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                    ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/50'
+                    : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-slate-300 dark:hover:border-slate-600'
                 }`}
               >
                 <div className={`w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center ${
-                  form.cameraMode === mode.id ? 'border-sky-500' : 'border-slate-300'
+                  form.cameraMode === mode.id ? 'border-sky-500' : 'border-slate-300 dark:border-slate-600'
                 }`}>
                   {form.cameraMode === mode.id && (
                     <div className="w-2 h-2 rounded-full bg-sky-500" />
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className={`text-sm font-semibold ${form.cameraMode === mode.id ? 'text-sky-700' : 'text-slate-800'}`}>
+                  <p className={`text-sm font-semibold ${form.cameraMode === mode.id ? 'text-sky-700 dark:text-sky-400' : 'text-slate-800 dark:text-slate-200'}`}>
                     {mode.label}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">{mode.description}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{mode.description}</p>
                 </div>
               </button>
             ))}
@@ -201,20 +202,20 @@ export default function SettingsTab() {
         </div>
 
         {/* Account & Users */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100">
-            <p className="text-sm font-semibold text-slate-900">Akun</p>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Akun</p>
           </div>
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             <button type="button" onClick={() => router.push('/users')}
-              className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 transition-colors">
+              className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
               <div className="flex items-center gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-400 dark:text-slate-500">
                   <path fillRule="evenodd" d="M8.25 6.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM15.75 9.75a3 3 0 116 0 3 3 0 01-6 0zM2.25 9.75a3 3 0 116 0 3 3 0 01-6 0zM6.31 15.117A6.745 6.745 0 0112 12a6.745 6.745 0 016.709 7.498.75.75 0 01-.372.568A12.696 12.696 0 0112 21.75c-2.305 0-4.47-.612-6.337-1.684a.75.75 0 01-.372-.568 6.787 6.787 0 011.019-4.38z" clipRule="evenodd" />
                 </svg>
-                <span className="text-sm text-slate-700">Kelola Pengguna</span>
+                <span className="text-sm text-slate-700 dark:text-slate-300">Kelola Pengguna</span>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-300 dark:text-slate-600">
                 <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 01-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 011.06-1.06l7.5 7.5z" clipRule="evenodd" />
               </svg>
             </button>
@@ -222,20 +223,20 @@ export default function SettingsTab() {
         </div>
 
         {/* Backup */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100">
-            <p className="text-sm font-semibold text-slate-900">Data</p>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Data</p>
           </div>
           <div className="px-5 py-4 space-y-3">
-            <p className="text-xs text-slate-500">Unduh salinan database SQLite sebagai cadangan.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Unduh salinan database SQLite sebagai cadangan.</p>
             {backupError && (
-              <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl px-3 py-2">{backupError}</p>
+              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-950/50 border border-red-100 dark:border-red-900 rounded-xl px-3 py-2">{backupError}</p>
             )}
             <button type="button" onClick={handleBackup} disabled={backing}
-              className="w-full h-10 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+              className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
               {backing
-                ? <LoadingSpinner size="sm" className="border-slate-300 border-t-slate-600" />
-                : <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-500">
+                ? <LoadingSpinner size="sm" className="border-slate-300 dark:border-slate-600 border-t-slate-600 dark:border-t-slate-300" />
+                : <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-500 dark:text-slate-400">
                     <path fillRule="evenodd" d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75zm-9 13.5a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
                   </svg>
               }
@@ -246,7 +247,7 @@ export default function SettingsTab() {
 
         {/* Logout */}
         <button type="button" onClick={handleLogout}
-          className="w-full h-11 rounded-2xl border border-red-100 bg-red-50 hover:bg-red-100 text-red-500 text-sm font-semibold transition-colors">
+          className="w-full h-11 rounded-2xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-950/60 text-red-500 dark:text-red-400 text-sm font-semibold transition-colors">
           Keluar
         </button>
 

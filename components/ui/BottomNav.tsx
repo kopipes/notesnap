@@ -38,7 +38,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 bg-white/90 backdrop-blur-xl border-t border-slate-200/80"
+      className="fixed inset-x-0 bottom-0 z-30 bg-white/90 backdrop-blur-xl border-t border-slate-200/80 dark:bg-slate-950/90 dark:border-slate-800/80"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-stretch max-w-lg mx-auto">

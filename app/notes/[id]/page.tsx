@@ -37,11 +37,11 @@ export default function NotePage({ params }: { params: { id: string } }) {
 
   return (
     // Full-screen, no bottom nav on editor page
-    <main className="fixed inset-0 flex flex-col bg-white">
+    <main className="fixed inset-0 flex flex-col bg-white dark:bg-slate-950">
       {/* Top nav bar */}
-      <nav className="flex items-center justify-between px-4 border-b border-slate-100 bg-white/95 backdrop-blur-sm safe-top shrink-0 h-12">
+      <nav className="flex items-center justify-between px-4 border-b border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-sm safe-top shrink-0 h-12">
         <button type="button" onClick={() => router.push('/')}
-          className="flex items-center gap-1 px-2 py-1.5 -ml-1 rounded-xl text-sky-500 hover:bg-sky-50 active:bg-sky-100 transition-colors">
+          className="flex items-center gap-1 px-2 py-1.5 -ml-1 rounded-xl text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-950/50 active:bg-sky-100 dark:active:bg-sky-900/50 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
             <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 010-1.06l7.5-7.5a.75.75 0 111.06 1.06L9.31 12l6.97 6.97a.75.75 0 11-1.06 1.06l-7.5-7.5z" clipRule="evenodd" />
           </svg>

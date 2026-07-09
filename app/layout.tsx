@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import ThemeProvider from '@/components/ui/ThemeProvider'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -40,11 +41,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="id" className={inter.variable} style={{ colorScheme: 'light' }}>
+    <html lang="id" className={inter.variable}>
       <body className="antialiased font-sans">
-        <div className="min-h-screen bg-white dark:bg-gray-950">
-          {children}
-        </div>
+        <ThemeProvider>
+          <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+            {children}
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   )

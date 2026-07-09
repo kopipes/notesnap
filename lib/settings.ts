@@ -60,6 +60,7 @@ export interface AppSettings {
   geminiApiKey: string
   geminiBaseUrl: string
   cameraMode: CameraMode
+  darkMode: boolean
 }
 
 const STORAGE_KEY = 'notesnap_settings'
@@ -68,6 +69,7 @@ const DEFAULTS: AppSettings = {
   geminiApiKey: '',
   geminiBaseUrl: 'https://ai.sumopod.com',
   cameraMode: 'balanced',
+  darkMode: false,
 }
 
 export function getSettings(): AppSettings {
@@ -80,9 +82,22 @@ export function getSettings(): AppSettings {
       geminiApiKey: parsed.geminiApiKey ?? DEFAULTS.geminiApiKey,
       geminiBaseUrl: parsed.geminiBaseUrl || DEFAULTS.geminiBaseUrl,
       cameraMode: (parsed.cameraMode as CameraMode) || DEFAULTS.cameraMode,
+      darkMode: parsed.darkMode ?? DEFAULTS.darkMode,
     }
   } catch {
     return { ...DEFAULTS }
+  }
+}
+
+/** Read dark mode preference directly (no full settings parse needed) */
+export function getDarkMode(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return false
+    return (JSON.parse(raw) as Partial<AppSettings>).darkMode ?? false
+  } catch {
+    return false
   }
 }
 
