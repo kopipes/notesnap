@@ -19,13 +19,15 @@ export async function GET(_req: NextRequest, { params }: Params) {
   }
 }
 
-// PATCH /api/notes/[id] — update title and/or content
+// PATCH /api/notes/[id] — update title, content, and/or summary
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
     const body = await request.json().catch(() => ({}))
-    const data: { title?: string; content?: string } = {}
+    const data: { title?: string; content?: string; summary?: string | null } = {}
     if (typeof body.title === 'string') data.title = body.title
     if (typeof body.content === 'string') data.content = body.content
+    if (typeof body.summary === 'string') data.summary = body.summary
+    if (body.summary === null) data.summary = null
 
     const note = await prisma.note.update({
       where: { id: params.id },

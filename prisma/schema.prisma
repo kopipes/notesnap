@@ -14,6 +14,7 @@ model Note {
   id        String   @id @default(cuid())
   title     String   @default("Catatan Baru")
   content   String   @default("") // Tiptap JSON as string
+  summary   String?  // AI-generated sermon summary
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

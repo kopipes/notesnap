@@ -16,6 +16,7 @@ interface NoteEditorProps {
   noteId: string
   initialContent: string
   initialTitle: string
+  initialSummary?: string | null
   onTitleChange?: (title: string) => void
   onSummaryTrigger?: (fn: () => void) => void
 }
@@ -23,7 +24,7 @@ interface NoteEditorProps {
 const AUTOSAVE_DELAY = 1000
 
 export default function NoteEditor({
-  noteId, initialContent, initialTitle, onTitleChange, onSummaryTrigger,
+  noteId, initialContent, initialTitle, initialSummary, onTitleChange, onSummaryTrigger,
 }: NoteEditorProps) {
   const [title, setTitle] = useState(initialTitle)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
@@ -32,11 +33,10 @@ export default function NoteEditor({
   const [toast, setToast] = useState<string | null>(null)
   const [toolbarBottom, setToolbarBottom] = useState(0)
   const [summaryOpen, setSummaryOpen] = useState(false)
-  const [summary, setSummary] = useState<string | null>(null)
+  const [summary, setSummary] = useState<string | null>(initialSummary ?? null)
   const [summarizing, setSummarizing] = useState(false)
   const [summaryError, setSummaryError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  // confirmPending: 'new' = first-time generate, 'retry' = regenerate from modal
   const [confirmPending, setConfirmPending] = useState<'new' | 'retry' | null>(null)
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -176,13 +176,20 @@ export default function NoteEditor({
       })
       const data = await res.json() as { summary?: string; error?: string }
       if (!res.ok) throw new Error(data.error ?? 'Gagal membuat ringkasan')
-      setSummary(data.summary ?? '')
+      const newSummary = data.summary ?? ''
+      setSummary(newSummary)
+      // Persist to DB
+      await fetch(`/api/notes/${noteId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ summary: newSummary }),
+      })
     } catch (err: unknown) {
       setSummaryError(err instanceof Error ? err.message : 'Terjadi kesalahan')
     } finally {
       setSummarizing(false)
     }
-  }, [title, showToast])
+  }, [title, noteId, showToast])
 
   // handleSummarize — called from toolbar (only when no summary yet): show confirm first
   const handleSummarize = useCallback(() => {

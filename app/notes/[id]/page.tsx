@@ -9,6 +9,7 @@ interface Note {
   id: string
   title: string
   content: string
+  summary: string | null
   updatedAt: string
 }
 
@@ -95,6 +96,7 @@ export default function NotePage({ params }: { params: { id: string } }) {
             noteId={note.id}
             initialContent={note.content}
             initialTitle={note.title}
+            initialSummary={note.summary}
             onSummaryTrigger={(fn) => { triggerSummaryRef.current = fn }}
           />
         )}
