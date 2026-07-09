@@ -19,12 +19,14 @@ interface NoteEditorProps {
   initialSummary?: string | null
   onTitleChange?: (title: string) => void
   onSummaryTrigger?: (fn: () => void) => void
+  onCopyNoteTrigger?: (fn: () => void) => void
+  onNoteCopied?: () => void
 }
 
 const AUTOSAVE_DELAY = 1000
 
 export default function NoteEditor({
-  noteId, initialContent, initialTitle, initialSummary, onTitleChange, onSummaryTrigger,
+  noteId, initialContent, initialTitle, initialSummary, onTitleChange, onSummaryTrigger, onCopyNoteTrigger, onNoteCopied,
 }: NoteEditorProps) {
   const [title, setTitle] = useState(initialTitle)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
@@ -246,6 +248,40 @@ export default function NoteEditor({
   useEffect(() => {
     onSummaryTrigger?.(handleOpenSummary)
   }, [onSummaryTrigger, handleOpenSummary])
+
+  // Copy full note (title + plain text) to clipboard
+  const handleCopyNote = useCallback(async () => {
+    const ed = editorRef.current
+    if (!ed) return
+    function extractText(node: Record<string, unknown>): string {
+      if (node.type === 'bibleVerse') {
+        const ref = (node.attrs as Record<string, string>)?.reference ?? ''
+        const verseText = ((node.content as Record<string, unknown>[]) ?? [])
+          .map(n => extractText(n)).join('')
+        return ref ? `${verseText} (${ref})\n` : `${verseText}\n`
+      }
+      if (node.type === 'text') return (node.text as string) ?? ''
+      if (node.content) {
+        const children = (node.content as Record<string, unknown>[]).map(n => extractText(n)).join('')
+        const block = ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote']
+        return block.includes(node.type as string) ? children + '\n' : children
+      }
+      return ''
+    }
+    const bodyText = extractText(ed.getJSON() as Record<string, unknown>).trim()
+    const fullText = title ? `${title}\n\n${bodyText}` : bodyText
+    try {
+      await navigator.clipboard.writeText(fullText)
+      onNoteCopied?.()
+    } catch {
+      showToast('Gagal menyalin catatan')
+    }
+  }, [title, showToast, onNoteCopied])
+
+  // Expose handleCopyNote to parent (top nav button)
+  useEffect(() => {
+    onCopyNoteTrigger?.(handleCopyNote)
+  }, [onCopyNoteTrigger, handleCopyNote])
 
   // OCR result — use ref so it always has a live editor reference
   // Insert as plain text paragraphs, not raw markdown

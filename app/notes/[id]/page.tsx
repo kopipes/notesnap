@@ -19,6 +19,8 @@ export default function NotePage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const triggerSummaryRef = useRef<(() => void) | null>(null)
+  const triggerCopyNoteRef = useRef<(() => void) | null>(null)
+  const [copiedNote, setCopiedNote] = useState(false)
 
   useEffect(() => {
     fetch(`/api/notes/${params.id}`)
@@ -50,6 +52,29 @@ export default function NotePage({ params }: { params: { id: string } }) {
         </button>
 
         <div className="flex items-center gap-1">
+          {/* Copy note button */}
+          {note && (
+            <button type="button"
+              onClick={() => triggerCopyNoteRef.current?.()}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 transition-colors">
+              {copiedNote ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500">
+                    <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-emerald-500">Tersalin!</span>
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                    <path fillRule="evenodd" d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5zM4.875 6H7.5v-.375A3.375 3.375 0 0110.875 2.25h4.25A3.375 3.375 0 0118.5 5.625V6h2.625a.75.75 0 010 1.5H4.875a.75.75 0 010-1.5zM5.625 7.5c-.621 0-1.125.504-1.125 1.125v10.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V8.625c0-.621-.504-1.125-1.125-1.125H5.625z" clipRule="evenodd" />
+                  </svg>
+                  Salin
+                </>
+              )}
+            </button>
+          )}
+
           {/* Summary button */}
           {note && (
             <button type="button"
@@ -98,6 +123,8 @@ export default function NotePage({ params }: { params: { id: string } }) {
             initialTitle={note.title}
             initialSummary={note.summary}
             onSummaryTrigger={(fn) => { triggerSummaryRef.current = fn }}
+            onCopyNoteTrigger={(fn) => { triggerCopyNoteRef.current = fn }}
+            onNoteCopied={() => { setCopiedNote(true); setTimeout(() => setCopiedNote(false), 2500) }}
           />
         )}
       </div>
