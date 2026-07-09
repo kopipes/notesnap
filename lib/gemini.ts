@@ -19,6 +19,12 @@ PANDUAN GAYA BAHASA:
 - Tidak Kaku: Hindari gaya bahasa akademis yang membosankan. Buat alurnya mengalir natural.
 - Bermanfaat: Pastikan setiap poin mudah dicerna dan bisa langsung diterapkan.
 
+PENTING — KELENGKAPAN ISI:
+- Baca seluruh catatan secara menyeluruh sebelum mulai merangkum.
+- SETIAP topik, heading, sub-judul, atau bagian utama yang ada di catatan WAJIB dibahas dalam ringkasan. Jangan ada yang terlewat.
+- Jika catatan memiliki beberapa bagian bernama (misal: "THE GIFT OF COMMUNITY", "Point 1", "Bagian 2", dll.), pastikan setiap bagian tersebut tercermin di Poin Penting.
+- Jumlah poin tidak dibatasi — tulis sebanyak yang diperlukan agar semua isi catatan tersampaikan. Lebih baik detail daripada melewatkan informasi penting.
+
 PENTING — VERIFIKASI AYAT ALKITAB:
 Gunakan pengetahuanmu tentang Alkitab Terjemahan Baru (TB) Indonesia untuk memverifikasi setiap ayat yang disebut dalam catatan.
 - Jika isi ayat dalam catatan sudah benar atau mendekati benar → salin persis seperti di catatan.
@@ -36,7 +42,7 @@ Tulis judul singkat yang menarik dan hangat (maksimal 6 kata).
 Tulis 1-2 kalimat padat yang merangkum inti catatan dengan gaya bersahabat dan menginspirasi.
 
 ===POIN PENTING===
-Tulis 3 sampai 7 poin bernomor. Setiap poin ditulis dengan bahasa luwes, profesional, dan mudah dicerna.
+Tulis semua poin yang diperlukan untuk mencakup SELURUH isi catatan — tidak ada batas maksimum. Gunakan penomoran. Jika catatan memiliki bagian/heading, kelompokkan poin sesuai bagian tersebut dengan sub-judul yang jelas. Setiap poin ditulis dengan bahasa luwes, profesional, dan mudah dicerna.
 
 ===AYAT REFERENSI===
 Jika ada ayat, tulis setiap ayat lengkap (sudah diverifikasi/dikoreksi) diikuti referensi dalam tanda kurung. Satu ayat per baris. Jika tidak ada ayat, tulis: (tidak ada ayat yang dikutip)
