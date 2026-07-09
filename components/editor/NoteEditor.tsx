@@ -1,6 +1,6 @@
 'use client'
 
-import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react'
+import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
@@ -405,100 +405,6 @@ export default function NoteEditor({
         </div>
       )}
 
-      {/* Bubble menu — appears on text selection */}
-      {editor && (
-        <BubbleMenu
-          editor={editor}
-          tippyOptions={{
-            duration: 100,
-            placement: 'bottom',
-            delay: [500, 0],        // 500ms show delay — waits for Android handle drag to finish
-            interactive: true,
-            appendTo: () => document.body,
-          }}
-          shouldShow={({ editor: ed, from, to }) => {
-            return from !== to && !ed.isActive('bibleVerse')
-          }}
-        >
-          <div className="flex items-center gap-0.5 bg-slate-900 dark:bg-slate-800 rounded-xl shadow-xl px-1.5 py-1.5 border border-slate-700/50">
-            <button
-              type="button"
-              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleBold().run() }}
-              className={`w-8 h-7 rounded-lg text-sm font-bold transition-colors ${editor.isActive('bold') ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
-              aria-label="Bold"
-            >B</button>
-            <button
-              type="button"
-              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleItalic().run() }}
-              className={`w-8 h-7 rounded-lg text-sm italic font-serif transition-colors ${editor.isActive('italic') ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
-              aria-label="Italic"
-            >I</button>
-            <button
-              type="button"
-              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleStrike().run() }}
-              className={`w-8 h-7 rounded-lg text-sm line-through transition-colors ${editor.isActive('strike') ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
-              aria-label="Strikethrough"
-            >S</button>
-            <div className="w-px h-4 bg-white/20 mx-0.5" />
-            <button
-              type="button"
-              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleHeading({ level: 1 }).run() }}
-              className={`px-2 h-7 rounded-lg text-xs font-bold transition-colors ${editor.isActive('heading', { level: 1 }) ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
-              aria-label="Heading 1"
-            >H1</button>
-            <button
-              type="button"
-              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleHeading({ level: 2 }).run() }}
-              className={`px-2 h-7 rounded-lg text-xs font-bold transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
-              aria-label="Heading 2"
-            >H2</button>
-            <div className="w-px h-4 bg-white/20 mx-0.5" />
-            <button
-              type="button"
-              onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleBlockquote().run() }}
-              className={`w-8 h-7 rounded-lg text-sm transition-colors flex items-center justify-center ${editor.isActive('blockquote') ? 'bg-white text-slate-900' : 'text-white hover:bg-white/10'}`}
-              aria-label="Blockquote"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
-                <path fillRule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223 3.722 3.722 0 00-1.054-7.307z" clipRule="evenodd" />
-              </svg>
-            </button>
-            <div className="w-px h-4 bg-white/20 mx-0.5" />
-            {/* Wrap — join selected paragraphs into one */}
-            <button
-              type="button"
-              onMouseDown={e => {
-                e.preventDefault()
-                const { state, dispatch } = editor.view
-                const { from, to } = state.selection
-                // Collect all text in range across nodes, join with space
-                const texts: string[] = []
-                state.doc.nodesBetween(from, to, (node) => {
-                  if (node.isText) texts.push(node.text ?? '')
-                  else if (node.isBlock && texts.length > 0) texts.push(' ')
-                })
-                const joined = texts.join('').replace(/\s+/g, ' ').trim()
-                if (!joined) return
-                // Replace selection with a single paragraph
-                const { tr } = state
-                tr.replaceWith(from, to, state.schema.nodes.paragraph.create(
-                  null,
-                  state.schema.text(joined)
-                ))
-                dispatch(tr)
-              }}
-              className="flex items-center gap-1 px-2 h-7 rounded-lg text-xs font-semibold text-white hover:bg-white/10 transition-colors whitespace-nowrap"
-              aria-label="Wrap paragraphs"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
-                <path fillRule="evenodd" d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.212-1.1c.118.217.157.461.108.694a7.109 7.109 0 01-.88 2.222.75.75 0 01-1.212-.894 5.61 5.61 0 00.687-1.737A5.625 5.625 0 001.5 19.125v.003-.003zm13.5 0a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H15.75a.75.75 0 01-.75-.75v-.008zm3.75 0a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H19.5a.75.75 0 01-.75-.75v-.008z" clipRule="evenodd" />
-              </svg>
-              Wrap
-            </button>
-          </div>
-        </BubbleMenu>
-      )}
-
       {/* Scrollable content — title + body */}
       <div className="px-4 pt-5 pb-4 max-w-2xl mx-auto w-full space-y-3">
         {/* Title card */}
@@ -579,6 +485,45 @@ export default function NoteEditor({
                 Simpan
               </button>
             )}
+
+            {/* Divider */}
+            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+
+            {/* Bold */}
+            <button type="button" onClick={() => editor?.chain().focus().toggleBold().run()} aria-label="Bold"
+              className={`w-8 h-8 rounded-xl text-sm font-bold transition-colors flex items-center justify-center ${editor?.isActive('bold') ? 'bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+              B
+            </button>
+
+            {/* Italic */}
+            <button type="button" onClick={() => editor?.chain().focus().toggleItalic().run()} aria-label="Italic"
+              className={`w-8 h-8 rounded-xl text-sm italic font-serif transition-colors flex items-center justify-center ${editor?.isActive('italic') ? 'bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+              I
+            </button>
+
+            {/* Wrap — join selected paragraphs into one */}
+            <button type="button" aria-label="Wrap paragraphs"
+              onClick={() => {
+                if (!editor) return
+                const { state, dispatch } = editor.view
+                const { from, to } = state.selection
+                const texts: string[] = []
+                state.doc.nodesBetween(from, to, (node) => {
+                  if (node.isText) texts.push(node.text ?? '')
+                  else if (node.isBlock && texts.length > 0) texts.push(' ')
+                })
+                const joined = texts.join('').replace(/\s+/g, ' ').trim()
+                if (!joined) return
+                const { tr } = state
+                tr.replaceWith(from, to, state.schema.nodes.paragraph.create(null, state.schema.text(joined)))
+                dispatch(tr)
+              }}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                <path fillRule="evenodd" d="M3 6a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 6zm0 4.5a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10.5zm0 4.5a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H3.75A.75.75 0 013 15z" clipRule="evenodd" />
+              </svg>
+              Wrap
+            </button>
 
             {/* Divider */}
             <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
