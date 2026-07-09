@@ -152,8 +152,27 @@ export default function NoteEditor({
   const runSummarize = useCallback(async () => {
     const ed = editorRef.current
     if (!ed) return
-    const plainText = ed.getText()
-    if (!plainText.trim()) {
+
+    // Extract plain text preserving bibleVerse references
+    // ed.getText() drops the `reference` attr, so we walk the JSON instead
+    function extractText(node: Record<string, unknown>): string {
+      if (node.type === 'bibleVerse') {
+        const ref = (node.attrs as Record<string, string>)?.reference ?? ''
+        const verseText = ((node.content as Record<string, unknown>[]) ?? [])
+          .map(n => extractText(n)).join('')
+        return ref ? `${verseText} (${ref})\n` : `${verseText}\n`
+      }
+      if (node.type === 'text') return (node.text as string) ?? ''
+      if (node.content) {
+        const children = (node.content as Record<string, unknown>[]).map(n => extractText(n)).join('')
+        const block = ['paragraph','heading','bulletList','orderedList','listItem','blockquote']
+        return block.includes(node.type as string) ? children + '\n' : children
+      }
+      return ''
+    }
+    const plainText = extractText(ed.getJSON() as Record<string, unknown>).trim()
+
+    if (!plainText) {
       showToast('Catatan masih kosong')
       return
     }
