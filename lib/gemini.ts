@@ -10,6 +10,16 @@ Ignore backgrounds, decorations, and logos. Fix glare-related distortions.
 Return plain text only. Do NOT use Markdown formatting — no asterisks, no hashes, no bullet symbols.
 Each line or point on its own line. Return only the text — no explanation, no preamble.`
 
+const SUMMARY_PROMPT = `You are a sermon notes summarizer. The user will provide raw sermon notes or bullet points.
+Write a clear, well-structured summary in Indonesian (Bahasa Indonesia) that includes:
+1. Main theme / judul khotbah
+2. Key points (poin-poin utama) — 3 to 7 bullet points
+3. Bible verses referenced (ayat-ayat yang dikutip), if any
+4. Practical application / aplikasi praktis, if mentioned
+
+Format the summary in plain text. Use simple section headers like "Tema:", "Poin Utama:", "Ayat:", "Aplikasi:".
+Do NOT use Markdown asterisks or hashes. Keep it concise and shareable.`
+
 // Default model — works on ai.sumopod.com and other OpenAI-compatible Gemini proxies
 // Can be overridden per-request via the model parameter
 const DEFAULT_MODEL = 'gemini/gemini-2.5-flash-lite'
@@ -94,3 +104,69 @@ export async function ocrImage(
 
   return text
 }
+
+/**
+ * Summarize sermon notes using an OpenAI-compatible API.
+ *
+ * @param noteText  - Plain text content of the note
+ * @param title     - Title of the note
+ * @param apiKey    - Optional: override key (falls back to GEMINI_API_KEY env)
+ * @param baseUrl   - Optional: override base URL
+ */
+export async function summarizeNote(
+  noteText: string,
+  title: string,
+  apiKey?: string,
+  baseUrl?: string,
+): Promise<string> {
+  const key = apiKey?.trim() || process.env.GEMINI_API_KEY
+  if (!key) {
+    throw new Error(
+      'Gemini API key belum diatur. Buka Pengaturan untuk menambahkan kunci API.'
+    )
+  }
+
+  const endpoint = (baseUrl?.trim() || DEFAULT_BASE_URL).replace(/\/$/, '')
+
+  const userMessage = `Judul: ${title}\n\nCatatan:\n${noteText}`
+
+  const body = {
+    model: DEFAULT_MODEL,
+    messages: [
+      { role: 'system', content: SUMMARY_PROMPT },
+      { role: 'user', content: userMessage },
+    ],
+    max_tokens: 1024,
+  }
+
+  const res = await fetch(`${endpoint}/v1/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${key}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => res.statusText)
+    throw new Error(`Summary API error ${res.status}: ${errText}`)
+  }
+
+  const data = await res.json() as {
+    choices?: Array<{ message?: { content?: string } }>
+    error?: { message?: string }
+  }
+
+  if (data.error?.message) {
+    throw new Error(`Summary API error: ${data.error.message}`)
+  }
+
+  const text = data.choices?.[0]?.message?.content?.trim()
+  if (!text) {
+    throw new Error('Summary API returned an empty response')
+  }
+
+  return text
+}
+
