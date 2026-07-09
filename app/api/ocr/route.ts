@@ -13,11 +13,12 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const { image, translate, apiKey, baseUrl } = body as {
+    const { image, translate, apiKey, baseUrl, model } = body as {
       image?: string
       translate?: boolean
       apiKey?: string
       baseUrl?: string
+      model?: string
     }
 
     if (!image || typeof image !== 'string') {
@@ -31,7 +32,8 @@ export async function POST(request: NextRequest) {
       image,
       translate === true,
       apiKey,
-      baseUrl
+      baseUrl,
+      model
     )
     return NextResponse.json({ markdown })
   } catch (error: unknown) {

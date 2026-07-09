@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState, useCallback } from 'react'
-import { useFrameSampler } from './useFrameSampler'
+import { useFrameSampler, type CaptureConfig } from './useFrameSampler'
 import CameraControls from './CameraControls'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
@@ -9,12 +9,14 @@ interface CameraViewProps {
   active: boolean
   onCapture: (base64Jpeg: string) => void
   onError: (msg: string) => void
+  captureConfig?: CaptureConfig
 }
 
 export default function CameraView({
   active,
   onCapture,
   onError,
+  captureConfig,
 }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -103,7 +105,7 @@ export default function CameraView({
   }, [])
 
   const { isCapturing, triggerManualCapture } =
-    useFrameSampler({ videoRef, active: false, onCapture })
+    useFrameSampler({ videoRef, active: false, onCapture, captureConfig })
 
   if (permissionError) {
     return (

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSettings, saveSettings, clearSettings, type AppSettings } from '@/lib/settings'
+import { getSettings, saveSettings, clearSettings, type AppSettings, CAMERA_MODES, type CameraMode } from '@/lib/settings'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 async function triggerBackup() {
@@ -27,6 +27,7 @@ export default function SettingsTab() {
   const [form, setForm] = useState<AppSettings>({
     geminiApiKey: '',
     geminiBaseUrl: 'https://ai.sumopod.com',
+    cameraMode: 'balanced',
   })
   const [saved, setSaved] = useState(false)
   const [showKey, setShowKey] = useState(false)
@@ -148,6 +149,50 @@ export default function SettingsTab() {
                 : 'Simpan'
               }
             </button>
+          </div>
+        </div>
+
+        {/* Camera OCR Mode */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-500">
+                <path d="M12 9a3.75 3.75 0 100 7.5A3.75 3.75 0 0012 9z" />
+                <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 015.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 01-3 3h-15a3 3 0 01-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 001.11-.71l.822-1.315a2.942 2.942 0 012.332-1.39zM6.75 12.75a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0zm12-1.5a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Mode Kamera OCR</p>
+              <p className="text-xs text-slate-400">Sesuaikan dengan kondisi pengambilan gambar</p>
+            </div>
+          </div>
+          <div className="px-5 py-4 space-y-2">
+            {CAMERA_MODES.map(mode => (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => { setSaved(false); setForm(prev => ({ ...prev, cameraMode: mode.id as CameraMode })) }}
+                className={`w-full flex items-start gap-3 px-4 py-3 rounded-xl border-2 text-left transition-all ${
+                  form.cameraMode === mode.id
+                    ? 'border-sky-500 bg-sky-50'
+                    : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center ${
+                  form.cameraMode === mode.id ? 'border-sky-500' : 'border-slate-300'
+                }`}>
+                  {form.cameraMode === mode.id && (
+                    <div className="w-2 h-2 rounded-full bg-sky-500" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className={`text-sm font-semibold ${form.cameraMode === mode.id ? 'text-sky-700' : 'text-slate-800'}`}>
+                    {mode.label}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">{mode.description}</p>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 

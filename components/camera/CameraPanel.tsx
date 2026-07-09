@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import CameraView from './CameraView'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import { getSettings } from '@/lib/settings'
+import { getSettings, getCameraModeConfig } from '@/lib/settings'
 
 interface CameraPanelProps {
   onClose: () => void
@@ -30,7 +30,8 @@ export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
     setProcessing(true)
     setError(null)
     try {
-      const { geminiApiKey, geminiBaseUrl } = getSettings()
+      const { geminiApiKey, geminiBaseUrl, cameraMode } = getSettings()
+      const { model } = getCameraModeConfig(cameraMode)
       const res = await fetch('/api/ocr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -39,6 +40,7 @@ export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
           translate: false,
           apiKey: geminiApiKey || undefined,
           baseUrl: geminiBaseUrl || undefined,
+          model,
         }),
       })
       const data = await res.json()
@@ -163,6 +165,7 @@ export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
                 active={isOpen && tab === 'camera'}
                 onCapture={handleCameraCapture}
                 onError={setError}
+                captureConfig={getCameraModeConfig(getSettings().cameraMode)}
               />
             ) : (
               <div className="px-4 pb-4 space-y-4">

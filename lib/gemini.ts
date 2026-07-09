@@ -10,7 +10,8 @@ Ignore backgrounds, decorations, and logos. Fix glare-related distortions.
 Return plain text only. Do NOT use Markdown formatting — no asterisks, no hashes, no bullet symbols.
 Each line or point on its own line. Return only the text — no explanation, no preamble.`
 
-// Default model — flash-lite is faster for OCR tasks
+// Default model — works on ai.sumopod.com and other OpenAI-compatible Gemini proxies
+// Can be overridden per-request via the model parameter
 const DEFAULT_MODEL = 'gemini/gemini-2.5-flash-lite'
 const DEFAULT_BASE_URL = 'https://ai.sumopod.com'
 
@@ -27,7 +28,8 @@ export async function ocrImage(
   base64Image: string,
   translate: boolean,
   apiKey?: string,
-  baseUrl?: string
+  baseUrl?: string,
+  modelOverride?: string
 ): Promise<string> {
   const key = apiKey?.trim() || process.env.GEMINI_API_KEY
   if (!key) {
@@ -38,9 +40,10 @@ export async function ocrImage(
 
   const endpoint = (baseUrl?.trim() || DEFAULT_BASE_URL).replace(/\/$/, '')
   const prompt = translate ? OCR_PROMPT_TRANSLATE : OCR_PROMPT_EXTRACT
+  const model = modelOverride?.trim() || DEFAULT_MODEL
 
   const body = {
-    model: DEFAULT_MODEL,
+    model,
     messages: [
       {
         role: 'user',

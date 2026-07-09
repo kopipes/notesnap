@@ -2,10 +2,17 @@
 
 import { useRef, useEffect, useCallback, useState } from 'react'
 
+export interface CaptureConfig {
+  maxWidth: number
+  jpegQuality: number
+  sharpen: boolean
+}
+
 interface UseFrameSamplerOptions {
   videoRef: React.RefObject<HTMLVideoElement>
   active: boolean
   onCapture: (base64Jpeg: string) => void
+  captureConfig?: CaptureConfig
   /** Pixel diff threshold per channel (0–255). Default: 15 */
   diffThreshold?: number
   /** How many consecutive stable frames before auto-capture. Default: 3 */
@@ -28,6 +35,7 @@ export function useFrameSampler({
   videoRef,
   active,
   onCapture,
+  captureConfig,
   diffThreshold = 15,
   stableFramesRequired = 3,
   interval = 500,
@@ -64,11 +72,13 @@ export function useFrameSampler({
     const canvas = canvasRef.current
     if (!video || !canvas || isCapturingRef.current) return
 
-    // Cap at 800px wide to reduce payload size — still plenty for OCR
-    const MAX_WIDTH = 800
+    const maxWidth = captureConfig?.maxWidth ?? 800
+    const jpegQuality = captureConfig?.jpegQuality ?? 0.6
+    const sharpen = captureConfig?.sharpen ?? false
+
     const origWidth = video.videoWidth || 640
     const origHeight = video.videoHeight || 480
-    const scale = Math.min(1, MAX_WIDTH / origWidth)
+    const scale = Math.min(1, maxWidth / origWidth)
 
     const captureCanvas = document.createElement('canvas')
     captureCanvas.width = Math.round(origWidth * scale)
@@ -77,8 +87,31 @@ export function useFrameSampler({
     if (!ctx) return
 
     ctx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height)
-    // JPEG quality 0.6 — enough for text OCR, ~60% smaller than 0.8
-    const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.6)
+
+    // Apply sharpening via convolution for Stage/HQ modes
+    if (sharpen) {
+      const imageData = ctx.getImageData(0, 0, captureCanvas.width, captureCanvas.height)
+      const src = new Uint8ClampedArray(imageData.data)
+      const w = captureCanvas.width, h = captureCanvas.height
+      // Unsharp mask kernel
+      const kernel = [0, -1, 0, -1, 5, -1, 0, -1, 0]
+      for (let y = 1; y < h - 1; y++) {
+        for (let x = 1; x < w - 1; x++) {
+          for (let c = 0; c < 3; c++) {
+            let val = 0
+            for (let ky = -1; ky <= 1; ky++) {
+              for (let kx = -1; kx <= 1; kx++) {
+                val += src[((y + ky) * w + (x + kx)) * 4 + c] * kernel[(ky + 1) * 3 + (kx + 1)]
+              }
+            }
+            imageData.data[(y * w + x) * 4 + c] = Math.min(255, Math.max(0, val))
+          }
+        }
+      }
+      ctx.putImageData(imageData, 0, 0)
+    }
+
+    const dataUrl = captureCanvas.toDataURL('image/jpeg', jpegQuality)
     const base64 = dataUrl.split(',')[1]
 
     isCapturingRef.current = true
