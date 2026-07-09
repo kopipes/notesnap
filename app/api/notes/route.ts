@@ -1,20 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// GET /api/notes — list all notes, newest first
-export async function GET() {
+const PAGE_SIZE = 10
+
+// GET /api/notes — list notes, newest first, with optional search and pagination
+// ?q=search term (searches title + content)
+// ?page=1 (1-indexed)
+export async function GET(req: NextRequest) {
   try {
-    const notes = await prisma.note.findMany({
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        title: true,
-        updatedAt: true,
-        createdAt: true,
-        // Omit full content for list view performance
-      },
+    const { searchParams } = new URL(req.url)
+    const q = searchParams.get('q')?.trim() || ''
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+    const skip = (page - 1) * PAGE_SIZE
+
+    const where = q
+      ? {
+          OR: [
+            { title: { contains: q } },
+            { content: { contains: q } },
+          ],
+        }
+      : {}
+
+    const [notes, total] = await Promise.all([
+      prisma.note.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: PAGE_SIZE,
+        select: {
+          id: true,
+          title: true,
+          updatedAt: true,
+          createdAt: true,
+        },
+      }),
+      prisma.note.count({ where }),
+    ])
+
+    return NextResponse.json({
+      notes,
+      total,
+      page,
+      pageSize: PAGE_SIZE,
+      totalPages: Math.ceil(total / PAGE_SIZE),
     })
-    return NextResponse.json(notes)
   } catch (error) {
     console.error('[GET /api/notes]', error)
     return NextResponse.json({ error: 'Failed to fetch notes' }, { status: 500 })

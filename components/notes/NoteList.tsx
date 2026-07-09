@@ -16,21 +16,41 @@ interface NoteListProps {
   searchQuery?: string
 }
 
+interface NotesResponse {
+  notes: NoteCardData[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
 export default function NoteList({ searchQuery = '' }: NoteListProps) {
-  const [notes, setNotes] = useState<NoteCardData[]>([])
+  const [data, setData] = useState<NotesResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery])
 
   useEffect(() => {
-    fetch('/api/notes')
+    setLoading(true)
+    setError(null)
+    const params = new URLSearchParams()
+    if (searchQuery.trim()) params.set('q', searchQuery.trim())
+    params.set('page', String(page))
+
+    fetch(`/api/notes?${params.toString()}`)
       .then((res) => {
         if (!res.ok) throw new Error('Gagal memuat catatan')
         return res.json()
       })
-      .then((data: NoteCardData[]) => setNotes(data))
+      .then((d: NotesResponse) => setData(d))
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Terjadi kesalahan'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [searchQuery, page])
 
   if (loading) {
     return (
@@ -54,7 +74,20 @@ export default function NoteList({ searchQuery = '' }: NoteListProps) {
     )
   }
 
-  if (notes.length === 0) {
+  if (!data || data.total === 0) {
+    if (searchQuery.trim()) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-slate-400 dark:text-slate-500">
+              <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Tidak ditemukan</p>
+          <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">Tidak ada catatan yang cocok dengan &ldquo;{searchQuery}&rdquo;</p>
+        </div>
+      )
+    }
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <div className="w-16 h-16 rounded-3xl bg-sky-50 dark:bg-sky-950/50 flex items-center justify-center mb-4">
@@ -70,29 +103,48 @@ export default function NoteList({ searchQuery = '' }: NoteListProps) {
     )
   }
 
-  const filtered = searchQuery.trim()
-    ? notes.filter(n => n.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    : notes
-
-  if (filtered.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-slate-400 dark:text-slate-500">
-            <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Tidak ditemukan</p>
-        <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">Tidak ada catatan yang cocok dengan &ldquo;{searchQuery}&rdquo;</p>
-      </div>
-    )
-  }
+  const { notes, totalPages } = data
 
   return (
-    <div className="space-y-2.5">
-      {filtered.map((note) => (
-        <NoteCard key={note.id} {...note} />
-      ))}
+    <div className="space-y-4">
+      <div className="space-y-2.5">
+        {notes.map((note) => (
+          <NoteCard key={note.id} {...note} />
+        ))}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-1 pb-2">
+          <button
+            type="button"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+              <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 010-1.06l7.5-7.5a.75.75 0 111.06 1.06L9.31 12l6.97 6.97a.75.75 0 11-1.06 1.06l-7.5-7.5z" clipRule="evenodd" />
+            </svg>
+            Sebelumnya
+          </button>
+
+          <span className="text-xs text-slate-400 dark:text-slate-500">
+            {page} / {totalPages}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            Berikutnya
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+              <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 01-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 011.06-1.06l7.5 7.5z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   )
 }
