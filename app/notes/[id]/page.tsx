@@ -10,6 +10,7 @@ interface Note {
   title: string
   content: string
   summary: string | null
+  createdAt: string
   updatedAt: string
 }
 
@@ -122,6 +123,7 @@ export default function NotePage({ params }: { params: { id: string } }) {
             initialContent={note.content}
             initialTitle={note.title}
             initialSummary={note.summary}
+            initialCreatedAt={note.createdAt}
             onSummaryTrigger={(fn) => { triggerSummaryRef.current = fn }}
             onCopyNoteTrigger={(fn) => { triggerCopyNoteRef.current = fn }}
             onNoteCopied={() => { setCopiedNote(true); setTimeout(() => setCopiedNote(false), 2500) }}

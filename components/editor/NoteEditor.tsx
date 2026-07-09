@@ -17,6 +17,7 @@ interface NoteEditorProps {
   initialContent: string
   initialTitle: string
   initialSummary?: string | null
+  initialCreatedAt?: string | null
   onTitleChange?: (title: string) => void
   onSummaryTrigger?: (fn: () => void) => void
   onCopyNoteTrigger?: (fn: () => void) => void
@@ -26,7 +27,7 @@ interface NoteEditorProps {
 const AUTOSAVE_DELAY = 1000
 
 export default function NoteEditor({
-  noteId, initialContent, initialTitle, initialSummary, onTitleChange, onSummaryTrigger, onCopyNoteTrigger, onNoteCopied,
+  noteId, initialContent, initialTitle, initialSummary, initialCreatedAt, onTitleChange, onSummaryTrigger, onCopyNoteTrigger, onNoteCopied,
 }: NoteEditorProps) {
   const [title, setTitle] = useState(initialTitle)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
@@ -321,6 +322,13 @@ export default function NoteEditor({
             placeholder="Judul catatan"
             className="w-full text-2xl font-bold leading-snug bg-transparent border-none outline-none text-slate-900 dark:text-slate-50 placeholder-slate-200 dark:placeholder-slate-700 tracking-tight"
           />
+          {initialCreatedAt && (
+            <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
+              {new Date(initialCreatedAt).toLocaleDateString('id-ID', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+              })}
+            </p>
+          )}
         </div>
 
         {/* Content card */}
