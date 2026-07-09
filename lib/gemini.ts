@@ -14,7 +14,7 @@ const SUMMARY_PROMPT = `You are a sermon notes summarizer. The user will provide
 Write a clear, well-structured summary in Indonesian (Bahasa Indonesia) that includes:
 1. Main theme / judul khotbah
 2. Key points (poin-poin utama) — 3 to 7 bullet points
-3. Bible verses referenced (ayat-ayat yang dikutip), if any
+3. Bible verses referenced (ayat-ayat yang dikutip) — for each verse, write the full verse text followed by the reference in parentheses. If the notes only contain a reference without the verse text, still include the reference. Do not skip this section if any verses are present.
 4. Practical application / aplikasi praktis, if mentioned
 
 Format the summary in plain text. Use simple section headers like "Tema:", "Poin Utama:", "Ayat:", "Aplikasi:".
