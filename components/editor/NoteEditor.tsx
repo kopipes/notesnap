@@ -392,37 +392,52 @@ export default function NoteEditor({
 
             {/* Footer */}
             {summary && !summarizing && (
-              <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 shrink-0 flex gap-2">
-                <button type="button" onClick={handleCopySummary}
-                  className="flex-1 h-10 rounded-xl bg-violet-500 hover:bg-violet-600 active:bg-violet-700 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-                  {copied ? (
-                    <><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>Tersalin!</>
-                  ) : (
-                    <><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5zM4.875 6H7.5v-.375A3.375 3.375 0 0110.875 2.25h4.25A3.375 3.375 0 0118.5 5.625V6h2.625a.75.75 0 010 1.5H4.875a.75.75 0 010-1.5zM5.625 7.5c-.621 0-1.125.504-1.125 1.125v10.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V8.625c0-.621-.504-1.125-1.125-1.125H5.625z" clipRule="evenodd" /></svg>Salin Ringkasan</>
-                  )}
-                </button>
-                <button type="button" onClick={() => setConfirmPending('retry')}
-                  className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm">
-                  Ulangi
-                </button>
+              <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                {confirmPending === 'retry' ? (
+                  /* Inline confirm for Ulangi */
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 text-center">Ringkasan yang sudah ada akan diganti. Yakin?</p>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={handleConfirmNo}
+                        className="flex-1 h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        Batal
+                      </button>
+                      <button type="button" onClick={handleConfirmYes}
+                        className="flex-1 h-10 rounded-xl bg-violet-500 hover:bg-violet-600 text-white text-sm font-semibold transition-colors">
+                        Ya, Ulangi
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <button type="button" onClick={handleCopySummary}
+                      className="flex-1 h-10 rounded-xl bg-violet-500 hover:bg-violet-600 active:bg-violet-700 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                      {copied ? (
+                        <><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>Tersalin!</>
+                      ) : (
+                        <><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5zM4.875 6H7.5v-.375A3.375 3.375 0 0110.875 2.25h4.25A3.375 3.375 0 0118.5 5.625V6h2.625a.75.75 0 010 1.5H4.875a.75.75 0 010-1.5zM5.625 7.5c-.621 0-1.125.504-1.125 1.125v10.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V8.625c0-.621-.504-1.125-1.125-1.125H5.625z" clipRule="evenodd" /></svg>Salin Ringkasan</>
+                      )}
+                    </button>
+                    <button type="button" onClick={() => setConfirmPending('retry')}
+                      className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm">
+                      Ulangi
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Confirm dialog */}
-      {confirmPending && (
+      {/* Confirm dialog — only for 'new' (first time generate), retry is inline in modal */}
+      {confirmPending === 'new' && (
         <div className="fixed inset-0 z-60 flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleConfirmNo} />
           <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-5 w-full max-w-xs">
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-1">
-              {confirmPending === 'retry' ? 'Buat ulang ringkasan?' : 'Buat ringkasan khotbah?'}
-            </p>
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-1">Buat ringkasan khotbah?</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              {confirmPending === 'retry'
-                ? 'Ringkasan yang sudah ada akan diganti.'
-                : 'AI akan meringkas catatan ini menggunakan API yang sudah dikonfigurasi.'}
+              AI akan meringkas catatan ini menggunakan API yang sudah dikonfigurasi.
             </p>
             <div className="flex gap-2">
               <button type="button" onClick={handleConfirmNo}
