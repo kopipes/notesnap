@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getSessionFromRequest } from '@/lib/auth'
 
 const PAGE_SIZE = 10
 
-// GET /api/notes — list notes, newest first, with optional search and pagination
-// ?q=search term (searches title + content)
-// ?page=1 (1-indexed)
-// ?limit=10 (override page size, max 1000)
+// GET /api/notes — list notes for current user, newest first, with optional search and pagination
 export async function GET(req: NextRequest) {
+  const session = await getSessionFromRequest(req)
+  if (!session) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+
   try {
     const { searchParams } = new URL(req.url)
     const q = searchParams.get('q')?.trim() || ''
@@ -15,14 +16,15 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(1000, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)))
     const skip = (page - 1) * limit
 
-    const where = q
-      ? {
-          OR: [
-            { title: { contains: q } },
-            { content: { contains: q } },
-          ],
-        }
-      : {}
+    const where = {
+      userId: session.userId,
+      ...(q ? {
+        OR: [
+          { title: { contains: q } },
+          { content: { contains: q } },
+        ],
+      } : {}),
+    }
 
     const [notes, total] = await Promise.all([
       prisma.note.findMany({
@@ -53,15 +55,18 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/notes — create a new note
+// POST /api/notes — create a new note owned by current user
 export async function POST(request: NextRequest) {
+  const session = await getSessionFromRequest(request)
+  if (!session) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+
   try {
     const body = await request.json().catch(() => ({}))
     const title: string = body.title ?? 'Catatan Baru'
     const content: string = body.content ?? ''
 
     const note = await prisma.note.create({
-      data: { title, content },
+      data: { title, content, userId: session.userId },
     })
     return NextResponse.json(note, { status: 201 })
   } catch (error) {

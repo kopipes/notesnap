@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getSessionFromRequest } from '@/lib/auth'
 
 // GET /api/notes/by-date?date=YYYY-MM-DD
 export async function GET(request: NextRequest) {
+  const session = await getSessionFromRequest(request)
+  if (!session) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+
   const { searchParams } = new URL(request.url)
   const dateStr = searchParams.get('date')
 
@@ -17,6 +21,7 @@ export async function GET(request: NextRequest) {
   try {
     const notes = await prisma.note.findMany({
       where: {
+        userId: session.userId,
         createdAt: { gte: start, lte: end },
       },
       orderBy: { createdAt: 'asc' },
