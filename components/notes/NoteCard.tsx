@@ -5,7 +5,12 @@ import Link from 'next/link'
 export interface NoteCardData {
   id: string
   title: string
+  createdAt: string
   updatedAt: string
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function formatRelativeTime(dateStr: string): string {
@@ -23,7 +28,7 @@ function formatRelativeTime(dateStr: string): string {
   return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export default function NoteCard({ id, title, updatedAt }: NoteCardData) {
+export default function NoteCard({ id, title, createdAt, updatedAt }: NoteCardData) {
   return (
     <Link
       href={`/notes/${id}`}
@@ -39,7 +44,11 @@ export default function NoteCard({ id, title, updatedAt }: NoteCardData) {
         <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate text-sm leading-snug">
           {title || 'Catatan Tanpa Judul'}
         </h2>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{formatRelativeTime(updatedAt)}</p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="text-xs text-slate-400 dark:text-slate-500">{formatDate(createdAt)}</span>
+          <span className="text-slate-200 dark:text-slate-700 text-xs">·</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">diedit {formatRelativeTime(updatedAt)}</span>
+        </div>
       </div>
       <svg
         xmlns="http://www.w3.org/2000/svg"
