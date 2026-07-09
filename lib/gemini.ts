@@ -19,24 +19,30 @@ PANDUAN GAYA BAHASA:
 - Tidak Kaku: Hindari gaya bahasa akademis yang membosankan. Buat alurnya mengalir natural.
 - Bermanfaat: Pastikan setiap poin mudah dicerna dan bisa langsung diterapkan.
 
-Tulis rangkuman dalam bahasa Indonesia dengan bagian-bagian berikut:
+PENTING — VERIFIKASI AYAT ALKITAB:
+Gunakan pengetahuanmu tentang Alkitab Terjemahan Baru (TB) Indonesia untuk memverifikasi setiap ayat yang disebut dalam catatan.
+- Jika isi ayat dalam catatan sudah benar atau mendekati benar → salin persis seperti di catatan.
+- Jika isi ayat dalam catatan salah, tidak lengkap, atau hasil OCR yang cacat → KOREKSI dengan teks TB yang benar.
+- Jika catatan hanya menyebut referensi tanpa isi ayat (misal: "Yohanes 3:16") → tulis isi ayat TB yang lengkap.
+- Selalu sertakan referensi lengkap dalam tanda kurung di akhir setiap ayat, contoh: (Yohanes 3:16).
+- JANGAN singkat, JANGAN parafrase, JANGAN potong isi ayat.
 
-Judul:
-Buat judul singkat yang menarik dan hangat (maksimal 6 kata).
+FORMAT OUTPUT — ikuti persis struktur ini, gunakan "===" sebagai pemisah antar bagian:
 
-Pesan Utama:
-Tulis 1-2 kalimat padat yang merangkum inti catatan dengan gaya bahasa bersahabat dan menginspirasi.
+===JUDUL===
+Tulis judul singkat yang menarik dan hangat (maksimal 6 kata).
 
-Poin Penting:
-Tulis 3 sampai 7 poin. Setiap poin ditulis dengan bahasa yang luwes, profesional, dan mudah dicerna. Fokus pada inti yang bermanfaat.
+===PESAN UTAMA===
+Tulis 1-2 kalimat padat yang merangkum inti catatan dengan gaya bersahabat dan menginspirasi.
 
-Ayat Referensi:
-Jika ada ayat Alkitab dalam catatan, salin isi ayatnya secara LENGKAP dan VERBATIM persis seperti yang tertulis di catatan — jangan disingkat, jangan diparafrase, jangan dipotong. Tulis referensinya dalam tanda kurung di akhir, misalnya: "Karena begitu besar kasih Allah akan dunia ini, sehingga Ia telah mengaruniakan Anak-Nya yang tunggal, supaya setiap orang yang percaya kepada-Nya tidak binasa, melainkan beroleh hidup yang kekal. (Yohanes 3:16)". Jika catatan hanya menyebut referensi tanpa isi ayat, tetap cantumkan referensinya saja. Jika tidak ada ayat sama sekali, lewati bagian ini.
+===POIN PENTING===
+Tulis 3 sampai 7 poin bernomor. Setiap poin ditulis dengan bahasa luwes, profesional, dan mudah dicerna.
 
-Langkah Praktis:
-Tulis 1 tindakan nyata yang bisa langsung diaplikasikan minggu ini, dengan nada menyemangati.
+===AYAT REFERENSI===
+Jika ada ayat, tulis setiap ayat lengkap (sudah diverifikasi/dikoreksi) diikuti referensi dalam tanda kurung. Satu ayat per baris. Jika tidak ada ayat, tulis: (tidak ada ayat yang dikutip)
 
-Format: plain text saja. Gunakan header sederhana seperti tertulis di atas diikuti baris baru. Jangan gunakan Markdown (tanpa tanda bintang, pagar, atau dash sebagai bullet — gunakan angka atau huruf saja untuk daftar).`
+===LANGKAH PRAKTIS===
+Tulis 1 tindakan nyata yang bisa langsung diaplikasikan minggu ini, dengan nada menyemangati.`
 
 // Default model for OCR — works on ai.sumopod.com and other OpenAI-compatible Gemini proxies
 // Can be overridden per-request via the model parameter

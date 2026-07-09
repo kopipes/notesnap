@@ -422,7 +422,101 @@ export default function NoteEditor({
                 </div>
               )}
               {summary && (
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{summary}</p>
+                <div className="space-y-4">
+                  {(() => {
+                    // Parse ===SECTION=== format into blocks
+                    const sectionOrder = ['JUDUL','PESAN UTAMA','POIN PENTING','AYAT REFERENSI','LANGKAH PRAKTIS']
+                    const sectionRegex = /===([^=]+)===/g
+                    const sections: Record<string, string> = {}
+                    let lastKey = ''
+                    let lastIndex = 0
+                    let match
+                    const raw = summary
+                    while ((match = sectionRegex.exec(raw)) !== null) {
+                      if (lastKey) {
+                        sections[lastKey] = raw.slice(lastIndex, match.index).trim()
+                      }
+                      lastKey = match[1].trim().toUpperCase()
+                      lastIndex = match.index + match[0].length
+                    }
+                    if (lastKey) sections[lastKey] = raw.slice(lastIndex).trim()
+
+                    // If no sections found, fall back to plain text
+                    if (Object.keys(sections).length === 0) {
+                      return <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{summary}</p>
+                    }
+
+                    const sectionLabels: Record<string, string> = {
+                      'JUDUL': 'Judul',
+                      'PESAN UTAMA': 'Pesan Utama',
+                      'POIN PENTING': 'Poin Penting',
+                      'AYAT REFERENSI': 'Ayat Referensi',
+                      'LANGKAH PRAKTIS': 'Langkah Praktis',
+                    }
+
+                    return sectionOrder.map(key => {
+                      const content = sections[key]
+                      if (!content) return null
+                      const label = sectionLabels[key] ?? key
+
+                      if (key === 'JUDUL') {
+                        return (
+                          <div key={key} className="pb-3 border-b border-slate-100 dark:border-slate-800">
+                            <p className="text-base font-bold text-slate-900 dark:text-slate-50 leading-snug">{content}</p>
+                          </div>
+                        )
+                      }
+
+                      if (key === 'AYAT REFERENSI') {
+                        const lines = content.split('\n').filter(l => l.trim() && l.trim() !== '(tidak ada ayat yang dikutip)')
+                        if (lines.length === 0) return null
+                        return (
+                          <div key={key}>
+                            <p className="text-xs font-semibold uppercase tracking-wider text-violet-500 dark:text-violet-400 mb-2">{label}</p>
+                            <div className="space-y-2">
+                              {lines.map((line, i) => (
+                                <div key={i} className="pl-3 border-l-2 border-violet-300 dark:border-violet-700">
+                                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic">{line.trim()}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      }
+
+                      if (key === 'LANGKAH PRAKTIS') {
+                        return (
+                          <div key={key} className="bg-emerald-50 dark:bg-emerald-950/40 rounded-xl px-4 py-3 border border-emerald-100 dark:border-emerald-900">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">{label}</p>
+                            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{content}</p>
+                          </div>
+                        )
+                      }
+
+                      if (key === 'PESAN UTAMA') {
+                        return (
+                          <div key={key} className="bg-violet-50 dark:bg-violet-950/30 rounded-xl px-4 py-3 border border-violet-100 dark:border-violet-900">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-violet-500 dark:text-violet-400 mb-1">{label}</p>
+                            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{content}</p>
+                          </div>
+                        )
+                      }
+
+                      // POIN PENTING
+                      const lines = content.split('\n').filter(l => l.trim())
+                      return (
+                        <div key={key}>
+                          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">{label}</p>
+                          <div className="space-y-1.5">
+                            {lines.map((line, i) => (
+                              <p key={i} className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{line.trim()}</p>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })
+                  })()}
+                </div>
               )}
             </div>
 
