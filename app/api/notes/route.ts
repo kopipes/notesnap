@@ -6,12 +6,14 @@ const PAGE_SIZE = 10
 // GET /api/notes — list notes, newest first, with optional search and pagination
 // ?q=search term (searches title + content)
 // ?page=1 (1-indexed)
+// ?limit=10 (override page size, max 1000)
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const q = searchParams.get('q')?.trim() || ''
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
-    const skip = (page - 1) * PAGE_SIZE
+    const limit = Math.min(1000, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)))
+    const skip = (page - 1) * limit
 
     const where = q
       ? {
@@ -27,7 +29,7 @@ export async function GET(req: NextRequest) {
         where,
         orderBy: { createdAt: 'desc' },
         skip,
-        take: PAGE_SIZE,
+        take: limit,
         select: {
           id: true,
           title: true,
@@ -42,8 +44,8 @@ export async function GET(req: NextRequest) {
       notes,
       total,
       page,
-      pageSize: PAGE_SIZE,
-      totalPages: Math.ceil(total / PAGE_SIZE),
+      pageSize: limit,
+      totalPages: Math.ceil(total / limit),
     })
   } catch (error) {
     console.error('[GET /api/notes]', error)

@@ -31,9 +31,9 @@ export default function CalendarTab() {
 
   // Load all notes once for dot indicators
   useEffect(() => {
-    fetch('/api/notes')
+    fetch('/api/notes?page=1&limit=1000')
       .then(r => r.json())
-      .then((data: Note[]) => setAllNotes(data))
+      .then((data: { notes: Note[] }) => setAllNotes(data.notes ?? []))
       .catch(() => {})
   }, [])
 
