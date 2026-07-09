@@ -46,6 +46,9 @@ export function useFrameSampler({
   const stableCountRef = useRef(0)
   const isCapturingRef = useRef(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // Keep captureConfig in a ref so doCapture doesn't need it as a dep
+  const captureConfigRef = useRef(captureConfig)
+  useEffect(() => { captureConfigRef.current = captureConfig }, [captureConfig])
 
   const [isStable, setIsStable] = useState(false)
   const [isCapturing, setIsCapturing] = useState(false)
@@ -72,9 +75,9 @@ export function useFrameSampler({
     const canvas = canvasRef.current
     if (!video || !canvas || isCapturingRef.current) return
 
-    const maxWidth = captureConfig?.maxWidth ?? 800
-    const jpegQuality = captureConfig?.jpegQuality ?? 0.6
-    const sharpen = captureConfig?.sharpen ?? false
+    const maxWidth = captureConfigRef.current?.maxWidth ?? 800
+    const jpegQuality = captureConfigRef.current?.jpegQuality ?? 0.6
+    const sharpen = captureConfigRef.current?.sharpen ?? false
 
     const origWidth = video.videoWidth || 640
     const origHeight = video.videoHeight || 480

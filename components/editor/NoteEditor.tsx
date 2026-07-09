@@ -3,7 +3,7 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import { BibleVerseExtension } from './BibleVerseExtension'
 import { createSlashCommandExtension } from './SlashCommandExtension'
 import AyatDialog from './AyatDialog'
@@ -11,6 +11,23 @@ import CameraPanel from '@/components/camera/CameraPanel'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { getSettings } from '@/lib/settings'
 import type { Editor } from '@tiptap/react'
+
+/** Extract plain text from a Tiptap JSON node, preserving bibleVerse references. */
+function extractTextFromNode(node: Record<string, unknown>): string {
+  if (node.type === 'bibleVerse') {
+    const ref = (node.attrs as Record<string, string>)?.reference ?? ''
+    const verseText = ((node.content as Record<string, unknown>[]) ?? [])
+      .map(n => extractTextFromNode(n)).join('')
+    return ref ? `${verseText} (${ref})\n` : `${verseText}\n`
+  }
+  if (node.type === 'text') return (node.text as string) ?? ''
+  if (node.content) {
+    const children = (node.content as Record<string, unknown>[]).map(n => extractTextFromNode(n)).join('')
+    const BLOCK_TYPES = ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote']
+    return BLOCK_TYPES.includes(node.type as string) ? children + '\n' : children
+  }
+  return ''
+}
 
 interface NoteEditorProps {
   noteId: string
@@ -108,7 +125,7 @@ export default function NoteEditor({
     titleTimerRef.current = setTimeout(() => saveTitle(e.target.value), AUTOSAVE_DELAY)
   }
 
-  const slashExt = createSlashCommandExtension(() => setAyatOpen(true))
+  const slashExt = useMemo(() => createSlashCommandExtension(() => setAyatOpen(true)), [])
 
   const editor = useEditor({
     extensions: [
@@ -157,23 +174,7 @@ export default function NoteEditor({
     if (!ed) return
 
     // Extract plain text preserving bibleVerse references
-    // ed.getText() drops the `reference` attr, so we walk the JSON instead
-    function extractText(node: Record<string, unknown>): string {
-      if (node.type === 'bibleVerse') {
-        const ref = (node.attrs as Record<string, string>)?.reference ?? ''
-        const verseText = ((node.content as Record<string, unknown>[]) ?? [])
-          .map(n => extractText(n)).join('')
-        return ref ? `${verseText} (${ref})\n` : `${verseText}\n`
-      }
-      if (node.type === 'text') return (node.text as string) ?? ''
-      if (node.content) {
-        const children = (node.content as Record<string, unknown>[]).map(n => extractText(n)).join('')
-        const block = ['paragraph','heading','bulletList','orderedList','listItem','blockquote']
-        return block.includes(node.type as string) ? children + '\n' : children
-      }
-      return ''
-    }
-    const plainText = extractText(ed.getJSON() as Record<string, unknown>).trim()
+    const plainText = extractTextFromNode(ed.getJSON() as Record<string, unknown>).trim()
 
     if (!plainText) {
       showToast('Catatan masih kosong')
@@ -254,22 +255,7 @@ export default function NoteEditor({
   const handleCopyNote = useCallback(async () => {
     const ed = editorRef.current
     if (!ed) return
-    function extractText(node: Record<string, unknown>): string {
-      if (node.type === 'bibleVerse') {
-        const ref = (node.attrs as Record<string, string>)?.reference ?? ''
-        const verseText = ((node.content as Record<string, unknown>[]) ?? [])
-          .map(n => extractText(n)).join('')
-        return ref ? `${verseText} (${ref})\n` : `${verseText}\n`
-      }
-      if (node.type === 'text') return (node.text as string) ?? ''
-      if (node.content) {
-        const children = (node.content as Record<string, unknown>[]).map(n => extractText(n)).join('')
-        const block = ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote']
-        return block.includes(node.type as string) ? children + '\n' : children
-      }
-      return ''
-    }
-    const bodyText = extractText(ed.getJSON() as Record<string, unknown>).trim()
+    const bodyText = extractTextFromNode(ed.getJSON() as Record<string, unknown>).trim()
     const fullText = title ? `${title}\n\n${bodyText}` : bodyText
     try {
       await navigator.clipboard.writeText(fullText)

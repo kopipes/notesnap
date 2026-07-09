@@ -36,7 +36,11 @@ export default function NotePage({ params }: { params: { id: string } }) {
 
   async function handleDelete() {
     if (!note || !confirm('Hapus catatan ini?')) return
-    await fetch(`/api/notes/${note.id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/notes/${note.id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      alert('Gagal menghapus catatan. Coba lagi.')
+      return
+    }
     router.push('/')
   }
 

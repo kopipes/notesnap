@@ -49,7 +49,7 @@ export default function BottomNav() {
               key={tab.href}
               href={tab.href}
               className={`
-                flex-1 flex flex-col items-center justify-center gap-0.5
+                relative flex-1 flex flex-col items-center justify-center gap-0.5
                 py-2.5 text-[10px] font-semibold tracking-wide
                 transition-colors duration-150
                 ${active ? 'text-sky-500' : 'text-slate-400 hover:text-slate-600'}
