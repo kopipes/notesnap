@@ -12,7 +12,11 @@ function NoteCardSkeleton() {
   )
 }
 
-export default function NoteList() {
+interface NoteListProps {
+  searchQuery?: string
+}
+
+export default function NoteList({ searchQuery = '' }: NoteListProps) {
   const [notes, setNotes] = useState<NoteCardData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -66,9 +70,27 @@ export default function NoteList() {
     )
   }
 
+  const filtered = searchQuery.trim()
+    ? notes.filter(n => n.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    : notes
+
+  if (filtered.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-slate-400 dark:text-slate-500">
+            <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Tidak ditemukan</p>
+        <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">Tidak ada catatan yang cocok dengan &ldquo;{searchQuery}&rdquo;</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-2.5">
-      {notes.map((note) => (
+      {filtered.map((note) => (
         <NoteCard key={note.id} {...note} />
       ))}
     </div>
