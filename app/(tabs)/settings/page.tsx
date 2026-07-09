@@ -171,7 +171,11 @@ export default function SettingsTab() {
               <button
                 key={mode.id}
                 type="button"
-                onClick={() => { setSaved(false); setForm(prev => ({ ...prev, cameraMode: mode.id as CameraMode })) }}
+                onClick={() => {
+                  const newForm = { ...form, cameraMode: mode.id as CameraMode }
+                  setForm(newForm)
+                  saveSettings(newForm)
+                }}
                 className={`w-full flex items-start gap-3 px-4 py-3 rounded-xl border-2 text-left transition-all ${
                   form.cameraMode === mode.id
                     ? 'border-sky-500 bg-sky-50'
