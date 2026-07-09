@@ -364,7 +364,15 @@ export default function NoteEditor({
 
     if (navigator.share) {
       try {
-        await navigator.share({ title, text: shareText })
+        // Try sharing as a text file — avoids WhatsApp character truncation
+        const blob = new Blob([shareText], { type: 'text/plain' })
+        const file = new File([blob], `${title.replace(/[^a-zA-Z0-9]/g, '_')}.txt`, { type: 'text/plain' })
+        const canShareFile = navigator.canShare && navigator.canShare({ files: [file] })
+        if (canShareFile) {
+          await navigator.share({ title, files: [file] })
+        } else {
+          await navigator.share({ title, text: shareText })
+        }
         setShared(true)
         setTimeout(() => setShared(false), 2500)
       } catch (err) {
