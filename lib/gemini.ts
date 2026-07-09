@@ -31,7 +31,7 @@ Poin Penting:
 Tulis 3 sampai 7 poin. Setiap poin ditulis dengan bahasa yang luwes, profesional, dan mudah dicerna. Fokus pada inti yang bermanfaat.
 
 Ayat Referensi:
-Jika ada ayat Alkitab dalam catatan, tulis setiap ayat dengan isinya yang lengkap diikuti referensinya dalam tanda kurung, misalnya: "Karena begitu besar kasih Allah akan dunia ini... (Yohanes 3:16)". Jika catatan hanya menyebut referensi tanpa isi ayat, tetap cantumkan referensinya. Jika tidak ada ayat sama sekali, lewati bagian ini.
+Jika ada ayat Alkitab dalam catatan, salin isi ayatnya secara LENGKAP dan VERBATIM persis seperti yang tertulis di catatan — jangan disingkat, jangan diparafrase, jangan dipotong. Tulis referensinya dalam tanda kurung di akhir, misalnya: "Karena begitu besar kasih Allah akan dunia ini, sehingga Ia telah mengaruniakan Anak-Nya yang tunggal, supaya setiap orang yang percaya kepada-Nya tidak binasa, melainkan beroleh hidup yang kekal. (Yohanes 3:16)". Jika catatan hanya menyebut referensi tanpa isi ayat, tetap cantumkan referensinya saja. Jika tidak ada ayat sama sekali, lewati bagian ini.
 
 Langkah Praktis:
 Tulis 1 tindakan nyata yang bisa langsung diaplikasikan minggu ini, dengan nada menyemangati.
