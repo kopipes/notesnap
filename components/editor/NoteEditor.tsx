@@ -446,48 +446,37 @@ export default function NoteEditor({
         }}
       >
         <div className="max-w-2xl mx-auto px-4 pt-2.5 flex items-center justify-between gap-2">
-          {/* Save status pill */}
-          <div className="flex items-center gap-1.5 text-xs font-medium select-none min-w-0">
+          {/* Save status — dot only to save space */}
+          <div className="flex items-center gap-1.5 select-none shrink-0">
             {!isOnline && (
-              <span className="flex items-center gap-1.5 text-amber-500 dark:text-amber-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+              <span className="flex items-center gap-1.5 text-xs font-medium text-amber-500 dark:text-amber-400">
+                <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
                 Offline
               </span>
             )}
             {isOnline && saveStatus === 'saving' && (
-              <span className="flex items-center gap-1.5 text-amber-500 dark:text-amber-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
-                Menyimpan…
+              <span title="Menyimpan…">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" />
               </span>
             )}
             {isOnline && saveStatus === 'saved' && (
-              <span className="flex items-center gap-1.5 text-emerald-500 dark:text-emerald-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                Tersimpan
+              <span title="Tersimpan">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
               </span>
             )}
             {isOnline && saveStatus === 'unsaved' && (
-              <span className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0" />
-                Belum tersimpan
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1 shrink-0">
-            {/* Manual save */}
-            {saveStatus === 'unsaved' && (
               <button type="button" onClick={handleManualSave} aria-label="Simpan sekarang"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white transition-colors shadow-sm shadow-emerald-500/25">
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white transition-colors shadow-sm shadow-emerald-500/25">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
                   <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
                 </svg>
                 Simpan
               </button>
             )}
+          </div>
 
-            {/* Divider */}
-            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+          {/* Action buttons — all tight on the right */}
+          <div className="flex items-center gap-0.5 shrink-0">
 
             {/* Bold */}
             <button type="button" onClick={() => editor?.chain().focus().toggleBold().run()} aria-label="Bold"
