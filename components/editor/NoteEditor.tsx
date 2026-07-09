@@ -409,7 +409,13 @@ export default function NoteEditor({
       {editor && (
         <BubbleMenu
           editor={editor}
-          tippyOptions={{ duration: 100, placement: 'bottom' }}
+          tippyOptions={{
+            duration: 100,
+            placement: 'bottom',
+            delay: [500, 0],        // 500ms show delay — waits for Android handle drag to finish
+            interactive: true,
+            appendTo: () => document.body,
+          }}
           shouldShow={({ editor: ed, from, to }) => {
             return from !== to && !ed.isActive('bibleVerse')
           }}
