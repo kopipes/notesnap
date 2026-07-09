@@ -64,8 +64,22 @@ export default function CameraPanel({ onClose, onResult }: CameraPanelProps) {
     const reader = new FileReader()
     reader.onload = () => {
       const dataUrl = reader.result as string
-      setUploadPreview(dataUrl)
-      setUploadBase64(dataUrl.split(',')[1])
+      // Compress image to max 800px wide at 0.6 quality before OCR
+      const img = new Image()
+      img.onload = () => {
+        const MAX_WIDTH = 800
+        const scale = Math.min(1, MAX_WIDTH / img.width)
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        const compressed = canvas.toDataURL('image/jpeg', 0.6)
+        setUploadPreview(compressed)
+        setUploadBase64(compressed.split(',')[1])
+      }
+      img.src = dataUrl
     }
     reader.readAsDataURL(file)
     e.target.value = ''

@@ -64,16 +64,21 @@ export function useFrameSampler({
     const canvas = canvasRef.current
     if (!video || !canvas || isCapturingRef.current) return
 
-    // Draw full-res frame for capture quality
+    // Cap at 800px wide to reduce payload size — still plenty for OCR
+    const MAX_WIDTH = 800
+    const origWidth = video.videoWidth || 640
+    const origHeight = video.videoHeight || 480
+    const scale = Math.min(1, MAX_WIDTH / origWidth)
+
     const captureCanvas = document.createElement('canvas')
-    captureCanvas.width = video.videoWidth || 640
-    captureCanvas.height = video.videoHeight || 480
+    captureCanvas.width = Math.round(origWidth * scale)
+    captureCanvas.height = Math.round(origHeight * scale)
     const ctx = captureCanvas.getContext('2d')
     if (!ctx) return
 
     ctx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height)
-    // Strip "data:image/jpeg;base64," prefix
-    const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.8)
+    // JPEG quality 0.6 — enough for text OCR, ~60% smaller than 0.8
+    const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.6)
     const base64 = dataUrl.split(',')[1]
 
     isCapturingRef.current = true

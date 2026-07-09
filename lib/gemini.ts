@@ -10,8 +10,8 @@ Ignore backgrounds, decorations, and logos. Fix glare-related distortions.
 Return plain text only. Do NOT use Markdown formatting — no asterisks, no hashes, no bullet symbols.
 Each line or point on its own line. Return only the text — no explanation, no preamble.`
 
-// Default model — works on ai.sumopod.com and other OpenAI-compatible Gemini proxies
-const DEFAULT_MODEL = 'gemini/gemini-2.5-flash'
+// Default model — flash-lite is faster for OCR tasks
+const DEFAULT_MODEL = 'gemini/gemini-2.5-flash-lite'
 const DEFAULT_BASE_URL = 'https://ai.sumopod.com'
 
 /**
@@ -58,7 +58,7 @@ export async function ocrImage(
         ],
       },
     ],
-    max_tokens: 4096,
+    max_tokens: 512,
   }
 
   const res = await fetch(`${endpoint}/v1/chat/completions`, {
