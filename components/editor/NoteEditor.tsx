@@ -457,6 +457,38 @@ export default function NoteEditor({
                 <path fillRule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223 3.722 3.722 0 00-1.054-7.307z" clipRule="evenodd" />
               </svg>
             </button>
+            <div className="w-px h-4 bg-white/20 mx-0.5" />
+            {/* Wrap — join selected paragraphs into one */}
+            <button
+              type="button"
+              onMouseDown={e => {
+                e.preventDefault()
+                const { state, dispatch } = editor.view
+                const { from, to } = state.selection
+                // Collect all text in range across nodes, join with space
+                const texts: string[] = []
+                state.doc.nodesBetween(from, to, (node) => {
+                  if (node.isText) texts.push(node.text ?? '')
+                  else if (node.isBlock && texts.length > 0) texts.push(' ')
+                })
+                const joined = texts.join('').replace(/\s+/g, ' ').trim()
+                if (!joined) return
+                // Replace selection with a single paragraph
+                const { tr } = state
+                tr.replaceWith(from, to, state.schema.nodes.paragraph.create(
+                  null,
+                  state.schema.text(joined)
+                ))
+                dispatch(tr)
+              }}
+              className="flex items-center gap-1 px-2 h-7 rounded-lg text-xs font-semibold text-white hover:bg-white/10 transition-colors whitespace-nowrap"
+              aria-label="Wrap paragraphs"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
+                <path fillRule="evenodd" d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.212-1.1c.118.217.157.461.108.694a7.109 7.109 0 01-.88 2.222.75.75 0 01-1.212-.894 5.61 5.61 0 00.687-1.737A5.625 5.625 0 001.5 19.125v.003-.003zm13.5 0a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H15.75a.75.75 0 01-.75-.75v-.008zm3.75 0a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H19.5a.75.75 0 01-.75-.75v-.008z" clipRule="evenodd" />
+              </svg>
+              Wrap
+            </button>
           </div>
         </BubbleMenu>
       )}
