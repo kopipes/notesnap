@@ -409,7 +409,7 @@ export default function NoteEditor({
       {editor && (
         <BubbleMenu
           editor={editor}
-          tippyOptions={{ duration: 100, placement: 'top' }}
+          tippyOptions={{ duration: 100, placement: 'bottom' }}
           shouldShow={({ editor: ed, from, to }) => {
             return from !== to && !ed.isActive('bibleVerse')
           }}
