@@ -20,9 +20,10 @@ Write a clear, well-structured summary in Indonesian (Bahasa Indonesia) that inc
 Format the summary in plain text. Use simple section headers like "Tema:", "Poin Utama:", "Ayat:", "Aplikasi:".
 Do NOT use Markdown asterisks or hashes. Keep it concise and shareable.`
 
-// Default model — works on ai.sumopod.com and other OpenAI-compatible Gemini proxies
+// Default model for OCR — works on ai.sumopod.com and other OpenAI-compatible Gemini proxies
 // Can be overridden per-request via the model parameter
 const DEFAULT_MODEL = 'gemini/gemini-2.5-flash-lite'
+const SUMMARY_MODEL = 'gemini/gemini-2.5-flash'
 const DEFAULT_BASE_URL = 'https://ai.sumopod.com'
 
 /**
@@ -131,7 +132,7 @@ export async function summarizeNote(
   const userMessage = `Judul: ${title}\n\nCatatan:\n${noteText}`
 
   const body = {
-    model: DEFAULT_MODEL,
+    model: SUMMARY_MODEL,
     messages: [
       { role: 'system', content: SUMMARY_PROMPT },
       { role: 'user', content: userMessage },
