@@ -321,18 +321,56 @@ export default function NoteEditor({
 
   const handleShareSummary = useCallback(async () => {
     if (!summary) return
-    const shareText = `${title}\n\n${summary}`
+
+    // Parse ===SECTION=== format into clean readable text for sharing
+    const sectionOrder = ['JUDUL', 'PESAN UTAMA', 'POIN PENTING', 'AYAT REFERENSI', 'LANGKAH PRAKTIS']
+    const sectionLabels: Record<string, string> = {
+      'JUDUL': '📖',
+      'PESAN UTAMA': '💡 Pesan Utama',
+      'POIN PENTING': '📝 Poin Penting',
+      'AYAT REFERENSI': '📜 Ayat Referensi',
+      'LANGKAH PRAKTIS': '✅ Langkah Praktis',
+    }
+    const sectionRegex = /===([^=]+)===/g
+    const sections: Record<string, string> = {}
+    let lastKey = ''
+    let lastIndex = 0
+    let match
+    while ((match = sectionRegex.exec(summary)) !== null) {
+      if (lastKey) sections[lastKey] = summary.slice(lastIndex, match.index).trim()
+      lastKey = match[1].trim().toUpperCase()
+      lastIndex = match.index + match[0].length
+    }
+    if (lastKey) sections[lastKey] = summary.slice(lastIndex).trim()
+
+    let shareText: string
+    if (Object.keys(sections).length === 0) {
+      // No sections — share as-is
+      shareText = `${title}\n\n${summary}`
+    } else {
+      const parts: string[] = []
+      for (const key of sectionOrder) {
+        const content = sections[key]
+        if (!content) continue
+        const label = sectionLabels[key] ?? key
+        if (key === 'JUDUL') {
+          parts.push(`${label} ${content}`)
+        } else {
+          parts.push(`${label}\n${content}`)
+        }
+      }
+      shareText = parts.join('\n\n')
+    }
+
     if (navigator.share) {
       try {
         await navigator.share({ title, text: shareText })
         setShared(true)
         setTimeout(() => setShared(false), 2500)
       } catch (err) {
-        // User cancelled share — not an error
         if (err instanceof Error && err.name !== 'AbortError') showToast('Gagal berbagi')
       }
     } else {
-      // Fallback: copy to clipboard
       try {
         await navigator.clipboard.writeText(shareText)
         setShared(true)
