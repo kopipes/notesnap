@@ -655,8 +655,16 @@ export default function NoteEditor({
                 })
                 const joined = texts.join('').replace(/\s+/g, ' ').trim()
                 if (!joined) return
+
+                // Find the start of the block node containing `from`
+                let blockStart = from
+                state.doc.nodesBetween(0, from, (node, pos) => {
+                  if (node.isBlock) blockStart = pos
+                })
+
                 const { tr } = state
-                tr.replaceWith(from, to, state.schema.nodes.paragraph.create(null, state.schema.text(joined)))
+                // Replace from blockStart to to (covers the full first block)
+                tr.replaceWith(blockStart, to, state.schema.nodes.paragraph.create(null, state.schema.text(joined)))
                 dispatch(tr)
               }}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
