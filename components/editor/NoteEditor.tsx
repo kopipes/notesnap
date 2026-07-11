@@ -100,6 +100,7 @@ export default function NoteEditor({
   const [createdAt, setCreatedAt] = useState<string>(initialCreatedAt ?? new Date().toISOString())
   const [editingDate, setEditingDate] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
+  const [wordCount, setWordCount] = useState(0)
   const [ayatOpen, setAyatOpen] = useState(false)
   const [cameraOpen, setCameraOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -107,6 +108,11 @@ export default function NoteEditor({
   const [summaryOpen, setSummaryOpen] = useState(false)
   const [summary, setSummary] = useState<string | null>(initialSummary ?? null)
   const [summarizing, setSummarizing] = useState(false)
+  const [versionOpen, setVersionOpen] = useState(false)
+  const [versions, setVersions] = useState<{ id: string; title: string; label: string | null; createdAt: string }[]>([])
+  const [versionsLoading, setVersionsLoading] = useState(false)
+  const [previewVersion, setPreviewVersion] = useState<{ id: string; title: string; content: string; createdAt: string } | null>(null)
+  const snapshotTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [summaryError, setSummaryError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [shared, setShared] = useState(false)
@@ -207,6 +213,62 @@ export default function NoteEditor({
     titleTimerRef.current = setTimeout(() => saveTitle(e.target.value), AUTOSAVE_DELAY)
   }
 
+  // ─── Version History ──────────────────────────────────────────────────────
+
+  const saveSnapshot = useCallback(async (label: string) => {
+    if (!isMountedRef.current) return
+    try {
+      await fetch(`/api/notes/${noteId}/versions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label }),
+      })
+    } catch { /* silent — version save is best-effort */ }
+  }, [noteId])
+
+  // Periodic snapshot every 5 minutes
+  useEffect(() => {
+    snapshotTimerRef.current = setInterval(() => {
+      if (isMountedRef.current) saveSnapshot('Disimpan otomatis')
+    }, 5 * 60 * 1000)
+    return () => {
+      if (snapshotTimerRef.current) clearInterval(snapshotTimerRef.current)
+      // Snapshot on close
+      saveSnapshot('Saat ditutup')
+    }
+  }, [saveSnapshot])
+
+  const loadVersions = useCallback(async () => {
+    setVersionsLoading(true)
+    try {
+      const res = await fetch(`/api/notes/${noteId}/versions`)
+      if (res.ok) setVersions(await res.json())
+    } catch { /* silent */ }
+    finally { setVersionsLoading(false) }
+  }, [noteId])
+
+  const loadVersionPreview = useCallback(async (versionId: string) => {
+    try {
+      const res = await fetch(`/api/notes/${noteId}/versions/${versionId}`)
+      if (res.ok) setPreviewVersion(await res.json())
+    } catch { /* silent */ }
+  }, [noteId])
+
+  const restoreVersion = useCallback(() => {
+    if (!previewVersion || !editorRef.current) return
+    // Save current state as a snapshot before restoring
+    saveSnapshot('Sebelum restore')
+    try {
+      const json = JSON.parse(previewVersion.content)
+      editorRef.current.commands.setContent(json)
+    } catch {
+      editorRef.current.commands.setContent(previewVersion.content)
+    }
+    setVersionOpen(false)
+    setPreviewVersion(null)
+    showToast('Versi dipulihkan')
+  }, [previewVersion, saveSnapshot, showToast])
+
   const handleCategoryChange = useCallback(async (newCategoryId: string | null) => {
     setCategoryId(newCategoryId)
     try {
@@ -264,6 +326,10 @@ export default function NoteEditor({
       setSaveStatus('unsaved')
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
       saveTimerRef.current = setTimeout(() => saveContent(JSON.stringify(ed.getJSON())), AUTOSAVE_DELAY)
+      // Word count — count words from plain text
+      const text = extractTextFromNode(ed.getJSON() as Record<string, unknown>)
+      const words = text.trim() ? text.trim().split(/\s+/).filter(w => w.length > 0).length : 0
+      setWordCount(words)
     },
   })
 
@@ -526,8 +592,14 @@ export default function NoteEditor({
         }}
       >
         <div className="max-w-2xl mx-auto px-4 pt-2.5 flex items-center justify-between gap-2">
-          {/* Save status — dot only to save space */}
-          <div className="flex items-center gap-1.5 select-none shrink-0">
+          {/* Save status + word count */}
+          <div className="flex items-center gap-2 select-none shrink-0">
+            {/* Word count + reading time */}
+            {wordCount > 0 && (
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 tabular-nums">
+                {wordCount} kata · {Math.max(1, Math.ceil(wordCount / 200))} mnt
+              </span>
+            )}
             {!isOnline && (
               <span className="flex items-center gap-1.5 text-xs font-medium text-amber-500 dark:text-amber-400">
                 <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
@@ -618,6 +690,20 @@ export default function NoteEditor({
                 <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 015.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 01-3 3h-15a3 3 0 01-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 001.11-.71l.822-1.315a2.942 2.942 0 012.332-1.39zM6.75 12.75a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0zm12-1.5a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
               </svg>
               Kamera
+            </button>
+
+            {/* Divider */}
+            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+
+            {/* Version History */}
+            <button type="button"
+              onClick={() => { setVersionOpen(v => !v); if (!versionOpen) loadVersions() }}
+              aria-label="Riwayat versi"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors ${versionOpen ? 'bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clipRule="evenodd" />
+              </svg>
+              Riwayat
             </button>
           </div>
         </div>
@@ -801,6 +887,101 @@ export default function NoteEditor({
                 className="flex-1 h-10 rounded-xl bg-violet-500 hover:bg-violet-600 text-white text-sm font-semibold transition-colors">
                 Ya, Buat
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Version History modal */}
+      {versionOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setVersionOpen(false); setPreviewVersion(null) }} />
+          <div className="relative w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+              <div className="flex items-center gap-2">
+                {previewVersion ? (
+                  <button type="button" onClick={() => setPreviewVersion(null)} className="flex items-center gap-1.5 text-sky-500 hover:text-sky-600 text-sm font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M7.72 12.53a.75.75 0 010-1.06l7.5-7.5a.75.75 0 111.06 1.06L9.31 12l6.97 6.97a.75.75 0 11-1.06 1.06l-7.5-7.5z" clipRule="evenodd" /></svg>
+                    Kembali
+                  </button>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-sky-500">
+                      <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-50">Riwayat Versi</span>
+                  </>
+                )}
+              </div>
+              <button type="button" onClick={() => { setVersionOpen(false); setPreviewVersion(null) }}
+                className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" /></svg>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto">
+              {previewVersion ? (
+                /* Version preview */
+                <div className="px-5 py-4 space-y-4">
+                  <div>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-1">
+                      {new Date(previewVersion.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                    </p>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-50">{previewVersion.title}</h3>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 max-h-48 overflow-y-auto">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                      {(() => {
+                        try {
+                          const json = JSON.parse(previewVersion.content)
+                          return extractTextFromNode(json as Record<string, unknown>).trim() || '(kosong)'
+                        } catch { return previewVersion.content }
+                      })()}
+                    </p>
+                  </div>
+                  <button type="button" onClick={restoreVersion}
+                    className="w-full h-10 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold transition-colors">
+                    Pulihkan Versi Ini
+                  </button>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
+                    Versi saat ini akan disimpan dulu sebelum dipulihkan
+                  </p>
+                </div>
+              ) : versionsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <LoadingSpinner size="md" className="border-slate-200 dark:border-slate-700 border-t-sky-500" />
+                </div>
+              ) : versions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 px-5 text-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-slate-300 dark:text-slate-600 mb-3">
+                    <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Belum ada riwayat versi</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Snapshot dibuat otomatis setiap 5 menit dan saat editor ditutup</p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {versions.map(v => (
+                    <li key={v.id}>
+                      <button type="button" onClick={() => loadVersionPreview(v.id)}
+                        className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left">
+                        <div>
+                          <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate max-w-[220px]">{v.title || 'Catatan Tanpa Judul'}</p>
+                          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                            {v.label && <span className="mr-1.5 text-sky-500 dark:text-sky-400">{v.label}</span>}
+                            {new Date(v.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                          </p>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0">
+                          <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 01-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 011.06-1.06l7.5 7.5z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>

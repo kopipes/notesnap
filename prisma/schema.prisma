@@ -11,20 +11,32 @@ datasource db {
 }
 
 model Note {
-  id         String    @id @default(cuid())
-  title      String    @default("Catatan Baru")
-  content    String    @default("") // Tiptap JSON as string
-  summary    String?   // AI-generated sermon summary
-  userId     String    @default("")  // owner — empty string for legacy notes
-  categoryId String?   // optional category
-  pinned     Boolean   @default(false)
-  archived   Boolean   @default(false)
-  deletedAt  DateTime? // soft-delete; null = not deleted
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id         String        @id @default(cuid())
+  title      String        @default("Catatan Baru")
+  content    String        @default("") // Tiptap JSON as string
+  summary    String?       // AI-generated sermon summary
+  userId     String        @default("")  // owner — empty string for legacy notes
+  categoryId String?       // optional category
+  pinned     Boolean       @default(false)
+  archived   Boolean       @default(false)
+  deletedAt  DateTime?     // soft-delete; null = not deleted
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 
-  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  user       User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  versions   NoteVersion[]
+}
+
+model NoteVersion {
+  id        String   @id @default(cuid())
+  noteId    String
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  label     String?  // e.g. "Disimpan otomatis" or "Saat ditutup"
+
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
 }
 
 model User {
