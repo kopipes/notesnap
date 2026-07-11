@@ -657,9 +657,7 @@ export default function NoteEditor({
                 if (!joined) return
                 const { tr } = state
                 tr.replaceWith(from, to, state.schema.nodes.paragraph.create(null, state.schema.text(joined)))
-                // Move cursor to start of the wrapped paragraph, then scroll it into view
                 dispatch(tr)
-                editor.chain().focus().setTextSelection(from).scrollIntoView().run()
               }}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
