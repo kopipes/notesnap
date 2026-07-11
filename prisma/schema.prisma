@@ -16,7 +16,6 @@ model Note {
   content    String        @default("") // Tiptap JSON as string
   summary    String?       // AI-generated sermon summary
   userId     String        @default("")  // owner — empty string for legacy notes
-  categoryId String?       // optional category
   pinned     Boolean       @default(false)
   archived   Boolean       @default(false)
   deletedAt  DateTime?     // soft-delete; null = not deleted
@@ -24,7 +23,7 @@ model Note {
   updatedAt  DateTime      @updatedAt
 
   user       User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category   Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categories NoteCategory[]
   versions   NoteVersion[]
 }
 
@@ -52,14 +51,25 @@ model User {
 }
 
 model Category {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   name      String
-  color     String   @default("#64748b") // hex color
+  color     String         @default("#64748b") // hex color
   userId    String
-  createdAt DateTime @default(now())
+  createdAt DateTime       @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notes     Note[]
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes     NoteCategory[]
 
   @@unique([userId, name])
+}
+
+model NoteCategory {
+  noteId     String
+  categoryId String
+
+  note       Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, categoryId])
+  @@index([categoryId])
 }

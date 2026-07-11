@@ -83,7 +83,7 @@ interface NoteEditorProps {
   initialTitle: string
   initialSummary?: string | null
   initialCreatedAt?: string | null
-  initialCategoryId?: string | null
+  initialCategoryIds?: string[]
   onTitleChange?: (title: string) => void
   onSummaryTrigger?: (fn: () => void) => void
   onCopyNoteTrigger?: (fn: () => void) => void
@@ -93,10 +93,10 @@ interface NoteEditorProps {
 const AUTOSAVE_DELAY = 1000
 
 export default function NoteEditor({
-  noteId, initialContent, initialTitle, initialSummary, initialCreatedAt, initialCategoryId, onTitleChange, onSummaryTrigger, onCopyNoteTrigger, onNoteCopied,
+  noteId, initialContent, initialTitle, initialSummary, initialCreatedAt, initialCategoryIds, onTitleChange, onSummaryTrigger, onCopyNoteTrigger, onNoteCopied,
 }: NoteEditorProps) {
   const [title, setTitle] = useState(initialTitle)
-  const [categoryId, setCategoryId] = useState<string | null>(initialCategoryId ?? null)
+  const [categoryIds, setCategoryIds] = useState<string[]>(initialCategoryIds ?? [])
   const [createdAt, setCreatedAt] = useState<string>(initialCreatedAt ?? new Date().toISOString())
   const [editingDate, setEditingDate] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
@@ -269,17 +269,22 @@ export default function NoteEditor({
     showToast('Versi dipulihkan')
   }, [previewVersion, saveSnapshot, showToast])
 
-  const handleCategoryChange = useCallback(async (newCategoryId: string | null) => {
-    setCategoryId(newCategoryId)
-    try {
-      await fetch(`/api/notes/${noteId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ categoryId: newCategoryId }),
-      })
-    } catch {
-      showToast('Gagal menyimpan kategori')
-    }
+  const categoryDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleCategoryChange = useCallback((newCategoryIds: string[]) => {
+    setCategoryIds(newCategoryIds)
+    if (categoryDebounceRef.current) clearTimeout(categoryDebounceRef.current)
+    categoryDebounceRef.current = setTimeout(async () => {
+      try {
+        await fetch(`/api/notes/${noteId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ categoryIds: newCategoryIds }),
+        })
+      } catch {
+        showToast('Gagal menyimpan kategori')
+      }
+    }, 400)
   }, [noteId, showToast])
 
   const handleDateChange = useCallback(async (newDate: string) => {
@@ -570,7 +575,7 @@ export default function NoteEditor({
           )}
           {/* Category picker — sits below date in title card */}
           <div className="mt-3">
-            <CategoryPicker value={categoryId} onChange={handleCategoryChange} />
+            <CategoryPicker value={categoryIds} onChange={handleCategoryChange} />
           </div>
         </div>
 

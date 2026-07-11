@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import NoteCard, { type NoteCardData } from './NoteCard'
-import { notesCache, categoriesCache, invalidateNotesCache, type CachedCategory } from '@/lib/notesCache'
+import { notesCache, categoriesCache, invalidateNotesCache, type CachedCategory, type CategoryRef } from '@/lib/notesCache'
 
 function NoteCardSkeleton() {
   return (
@@ -24,7 +24,7 @@ interface NoteListProps {
 }
 
 interface NotesResponse {
-  notes: NoteCardData[]
+  notes: Array<NoteCardData & { categories: CategoryRef[] }>
   total: number
   page: number
   pageSize: number

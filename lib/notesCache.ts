@@ -1,14 +1,19 @@
 // Shared client-side cache for notes list — persists during SPA navigation
 // Invalidate this cache from any component to force NoteList to refetch
 
+export interface CategoryRef {
+  id: string
+  name: string
+  color: string
+}
+
 export interface CachedNotesResponse {
   notes: Array<{
     id: string
     title: string
     createdAt: string
     updatedAt: string
-    categoryId?: string | null
-    category?: { id: string; name: string; color: string } | null
+    categories: CategoryRef[]
   }>
   total: number
   page: number
