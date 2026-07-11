@@ -29,6 +29,11 @@ export default function CategoryPicker({ value, onChange }: CategoryPickerProps)
   const [newColor, setNewColor] = useState(PRESET_COLORS[0])
   const [addError, setAddError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  // editing state: catId -> { name, saving, error }
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
   const selected = categories.find(c => c.id === value) ?? null
@@ -50,6 +55,7 @@ export default function CategoryPicker({ value, onChange }: CategoryPickerProps)
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setOpen(false)
         setCreating(false)
+        setEditingId(null)
       }
     }
     document.addEventListener('mousedown', handleClick)
@@ -78,6 +84,39 @@ export default function CategoryPicker({ value, onChange }: CategoryPickerProps)
       setAddError('Terjadi kesalahan')
     } finally {
       setSaving(false)
+    }
+  }
+
+  function startEdit(cat: Category, e: React.MouseEvent) {
+    e.stopPropagation()
+    setEditingId(cat.id)
+    setEditName(cat.name)
+    setEditError(null)
+    setCreating(false)
+  }
+
+  async function handleEditSave(catId: string) {
+    const trimmed = editName.trim()
+    if (!trimmed) { setEditError('Nama tidak boleh kosong'); return }
+    setEditSaving(true)
+    setEditError(null)
+    try {
+      const res = await fetch(`/api/categories/${catId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setEditError(data.error ?? 'Gagal menyimpan'); return }
+      setCategories(prev =>
+        prev.map(c => c.id === catId ? { ...c, name: data.name } : c)
+          .sort((a, b) => a.name.localeCompare(b.name))
+      )
+      setEditingId(null)
+    } catch {
+      setEditError('Terjadi kesalahan')
+    } finally {
+      setEditSaving(false)
     }
   }
 
@@ -123,7 +162,7 @@ export default function CategoryPicker({ value, onChange }: CategoryPickerProps)
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute bottom-full mb-2 left-0 w-56 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl z-50 overflow-hidden">
+        <div className="absolute bottom-full mb-2 left-0 w-64 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl z-50 overflow-hidden">
           {/* None option */}
           <button
             type="button"
@@ -150,30 +189,74 @@ export default function CategoryPicker({ value, onChange }: CategoryPickerProps)
 
           {/* Category list */}
           {categories.map(cat => (
-            <div key={cat.id} className="group flex items-center">
-              <button
-                type="button"
-                onClick={() => { onChange(cat.id); setOpen(false) }}
-                className={`flex-1 flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-left transition-colors ${
-                  value === cat.id
-                    ? 'bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                <span className="font-medium truncate">{cat.name}</span>
-                {value === cat.id && <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 ml-auto shrink-0"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>}
-              </button>
-              <button
-                type="button"
-                onClick={(e) => handleDelete(cat, e)}
-                className="opacity-0 group-hover:opacity-100 pr-2.5 text-slate-300 dark:text-slate-600 hover:text-red-500 transition-all"
-                aria-label={`Hapus kategori ${cat.name}`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
-                  <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
-                </svg>
-              </button>
+            <div key={cat.id}>
+              {editingId === cat.id ? (
+                /* Inline edit form */
+                <div className="px-3 py-2.5 space-y-1.5 bg-slate-50 dark:bg-slate-800/60">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={e => { setEditName(e.target.value); setEditError(null) }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') { e.preventDefault(); handleEditSave(cat.id) }
+                      if (e.key === 'Escape') setEditingId(null)
+                    }}
+                    maxLength={50}
+                    autoFocus
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-400 transition-colors"
+                  />
+                  {editError && <p className="text-[10px] text-red-500">{editError}</p>}
+                  <div className="flex gap-1.5">
+                    <button type="button" onClick={() => setEditingId(null)}
+                      className="flex-1 h-6 rounded-lg border border-slate-200 dark:border-slate-700 text-[10px] text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                      Batal
+                    </button>
+                    <button type="button" onClick={() => handleEditSave(cat.id)} disabled={editSaving || !editName.trim()}
+                      className="flex-1 h-6 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-[10px] font-semibold disabled:opacity-50 transition-colors">
+                      {editSaving ? '…' : 'Simpan'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Normal row */
+                <div className="group flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => { onChange(cat.id); setOpen(false) }}
+                    className={`flex-1 flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-left transition-colors ${
+                      value === cat.id
+                        ? 'bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                    <span className="font-medium truncate">{cat.name}</span>
+                    {value === cat.id && <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 ml-auto shrink-0"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>}
+                  </button>
+                  {/* Edit button */}
+                  <button
+                    type="button"
+                    onClick={(e) => startEdit(cat, e)}
+                    className="opacity-0 group-hover:opacity-100 pl-1 pr-1 py-2.5 text-slate-300 dark:text-slate-600 hover:text-sky-500 transition-all"
+                    aria-label={`Edit kategori ${cat.name}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                      <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z" />
+                    </svg>
+                  </button>
+                  {/* Delete button */}
+                  <button
+                    type="button"
+                    onClick={(e) => handleDelete(cat, e)}
+                    className="opacity-0 group-hover:opacity-100 pr-2.5 text-slate-300 dark:text-slate-600 hover:text-red-500 transition-all"
+                    aria-label={`Hapus kategori ${cat.name}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                      <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
           ))}
 
@@ -182,7 +265,7 @@ export default function CategoryPicker({ value, onChange }: CategoryPickerProps)
             {!creating ? (
               <button
                 type="button"
-                onClick={() => setCreating(true)}
+                onClick={() => { setCreating(true); setEditingId(null) }}
                 className="w-full flex items-center gap-2 px-3.5 py-2.5 text-xs font-medium text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
