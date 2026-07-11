@@ -54,6 +54,16 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ skipped: true })
     }
 
+    // Skip if content is identical to the most recent version
+    const lastVersion = await prisma.noteVersion.findFirst({
+      where: { noteId: params.id },
+      orderBy: { createdAt: 'desc' },
+      select: { content: true },
+    })
+    if (lastVersion && lastVersion.content === note.content) {
+      return NextResponse.json({ skipped: true })
+    }
+
     const version = await prisma.noteVersion.create({
       data: {
         noteId: params.id,
