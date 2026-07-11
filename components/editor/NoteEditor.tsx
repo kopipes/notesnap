@@ -216,12 +216,12 @@ export default function NoteEditor({
   // ─── Version History ──────────────────────────────────────────────────────
 
   const saveSnapshot = useCallback(async (label: string) => {
-    if (!isMountedRef.current) return
     try {
       await fetch(`/api/notes/${noteId}/versions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ label }),
+        keepalive: true, // ensures the request completes even if the page is unloading
       })
     } catch { /* silent — version save is best-effort */ }
   }, [noteId])
