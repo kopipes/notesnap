@@ -11,6 +11,7 @@ import CameraPanel from '@/components/camera/CameraPanel'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import CategoryPicker from '@/components/ui/CategoryPicker'
 import { getSettings } from '@/lib/settings'
+import { parseSummarySections, formatSummaryForShare, SECTION_ORDER, SECTION_LABELS } from '@/lib/summary'
 import type { Editor } from '@tiptap/react'
 
 // ─── Offline save queue ───────────────────────────────────────────────────────
@@ -362,49 +363,10 @@ export default function NoteEditor({
   const handleShareSummary = useCallback(async () => {
     if (!summary) return
 
-    // Parse ===SECTION=== format into clean readable text for sharing
-    const sectionOrder = ['JUDUL', 'PESAN UTAMA', 'POIN PENTING', 'AYAT REFERENSI', 'LANGKAH PRAKTIS']
-    const sectionLabels: Record<string, string> = {
-      'JUDUL': '📖',
-      'PESAN UTAMA': '💡 Pesan Utama',
-      'POIN PENTING': '📝 Poin Penting',
-      'AYAT REFERENSI': '📜 Ayat Referensi',
-      'LANGKAH PRAKTIS': '✅ Langkah Praktis',
-    }
-    const sectionRegex = /===([^=]+)===/g
-    const sections: Record<string, string> = {}
-    let lastKey = ''
-    let lastIndex = 0
-    let match
-    while ((match = sectionRegex.exec(summary)) !== null) {
-      if (lastKey) sections[lastKey] = summary.slice(lastIndex, match.index).trim()
-      lastKey = match[1].trim().toUpperCase()
-      lastIndex = match.index + match[0].length
-    }
-    if (lastKey) sections[lastKey] = summary.slice(lastIndex).trim()
-
-    let shareText: string
-    if (Object.keys(sections).length === 0) {
-      // No sections — share as-is
-      shareText = `${title}\n\n${summary}`
-    } else {
-      const parts: string[] = []
-      for (const key of sectionOrder) {
-        const content = sections[key]
-        if (!content) continue
-        const label = sectionLabels[key] ?? key
-        if (key === 'JUDUL') {
-          parts.push(`${label} ${content}`)
-        } else {
-          parts.push(`${label}\n${content}`)
-        }
-      }
-      shareText = parts.join('\n\n')
-    }
+    const shareText = formatSummaryForShare(title, summary)
 
     if (navigator.share) {
       try {
-        // Try sharing as a text file — avoids WhatsApp character truncation
         const blob = new Blob([shareText], { type: 'text/plain' })
         const file = new File([blob], `${title.replace(/[^a-zA-Z0-9]/g, '_')}.txt`, { type: 'text/plain' })
         const canShareFile = navigator.canShare && navigator.canShare({ files: [file] })
@@ -704,40 +666,17 @@ export default function NoteEditor({
               {summary && (
                 <div className="space-y-4">
                   {(() => {
-                    // Parse ===SECTION=== format into blocks
-                    const sectionOrder = ['JUDUL','PESAN UTAMA','POIN PENTING','AYAT REFERENSI','LANGKAH PRAKTIS']
-                    const sectionRegex = /===([^=]+)===/g
-                    const sections: Record<string, string> = {}
-                    let lastKey = ''
-                    let lastIndex = 0
-                    let match
-                    const raw = summary
-                    while ((match = sectionRegex.exec(raw)) !== null) {
-                      if (lastKey) {
-                        sections[lastKey] = raw.slice(lastIndex, match.index).trim()
-                      }
-                      lastKey = match[1].trim().toUpperCase()
-                      lastIndex = match.index + match[0].length
-                    }
-                    if (lastKey) sections[lastKey] = raw.slice(lastIndex).trim()
+                    const sections = parseSummarySections(summary)
 
                     // If no sections found, fall back to plain text
                     if (Object.keys(sections).length === 0) {
                       return <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{summary}</p>
                     }
 
-                    const sectionLabels: Record<string, string> = {
-                      'JUDUL': 'Judul',
-                      'PESAN UTAMA': 'Pesan Utama',
-                      'POIN PENTING': 'Poin Penting',
-                      'AYAT REFERENSI': 'Ayat Referensi',
-                      'LANGKAH PRAKTIS': 'Langkah Praktis',
-                    }
-
-                    return sectionOrder.map(key => {
+                    return SECTION_ORDER.map(key => {
                       const content = sections[key]
                       if (!content) return null
-                      const label = sectionLabels[key] ?? key
+                      const label = SECTION_LABELS[key]
 
                       if (key === 'JUDUL') {
                         return (
