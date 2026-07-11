@@ -4,12 +4,14 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import NoteEditor from '@/components/editor/NoteEditor'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { invalidateNotesCache } from '@/lib/notesCache'
 
 interface Note {
   id: string
   title: string
   content: string
   summary: string | null
+  categoryId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -32,6 +34,8 @@ export default function NotePage({ params }: { params: { id: string } }) {
       .then((data: Note) => setNote(data))
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Terjadi kesalahan'))
       .finally(() => setLoading(false))
+    // Invalidate notes list cache on unmount so list always shows fresh data
+    return () => { invalidateNotesCache() }
   }, [params.id])
 
   async function handleDelete() {
@@ -149,6 +153,7 @@ export default function NotePage({ params }: { params: { id: string } }) {
             initialTitle={note.title}
             initialSummary={note.summary}
             initialCreatedAt={note.createdAt}
+            initialCategoryId={note.categoryId}
             onSummaryTrigger={(fn) => { triggerSummaryRef.current = fn }}
             onCopyNoteTrigger={(fn) => { triggerCopyNoteRef.current = fn }}
             onNoteCopied={() => { setCopiedNote(true); setTimeout(() => setCopiedNote(false), 2500) }}

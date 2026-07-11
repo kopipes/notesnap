@@ -11,24 +11,40 @@ datasource db {
 }
 
 model Note {
-  id        String   @id @default(cuid())
-  title     String   @default("Catatan Baru")
-  content   String   @default("") // Tiptap JSON as string
-  summary   String?  // AI-generated sermon summary
-  userId    String   @default("")  // owner — empty string for legacy notes
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String    @id @default(cuid())
+  title      String    @default("Catatan Baru")
+  content    String    @default("") // Tiptap JSON as string
+  summary    String?   // AI-generated sermon summary
+  userId     String    @default("")  // owner — empty string for legacy notes
+  categoryId String?   // optional category
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  password  String   // bcrypt hash
-  role      String   @default("user") // "admin" | "user"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String     @id @default(cuid())
+  username   String     @unique
+  password   String     // bcrypt hash
+  role       String     @default("user") // "admin" | "user"
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
+  notes      Note[]
+  categories Category[]
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#64748b") // hex color
+  userId    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes     Note[]
+
+  @@unique([userId, name])
 }

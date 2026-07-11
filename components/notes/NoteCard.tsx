@@ -7,6 +7,8 @@ export interface NoteCardData {
   title: string
   createdAt: string
   updatedAt: string
+  categoryId?: string | null
+  category?: { id: string; name: string; color: string } | null
 }
 
 function formatDate(dateStr: string): string {
@@ -28,7 +30,7 @@ function formatRelativeTime(dateStr: string): string {
   return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
 }
 
-export default function NoteCard({ id, title, createdAt, updatedAt }: NoteCardData) {
+export default function NoteCard({ id, title, createdAt, updatedAt, category }: NoteCardData) {
   return (
     <Link
       href={`/notes/${id}`}
@@ -46,7 +48,16 @@ export default function NoteCard({ id, title, createdAt, updatedAt }: NoteCardDa
         <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate text-sm leading-snug">
           {title || 'Catatan Tanpa Judul'}
         </h2>
-        <div className="flex items-center gap-1.5 mt-0.5">
+        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+          {category && (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md"
+              style={{ backgroundColor: category.color + '22', color: category.color }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: category.color }} />
+              {category.name}
+            </span>
+          )}
           <span className="text-xs text-slate-400 dark:text-slate-500">{formatDate(createdAt)}</span>
           <span className="text-slate-200 dark:text-slate-700 text-xs">·</span>
           <span className="text-xs text-slate-400 dark:text-slate-500">diedit {formatRelativeTime(updatedAt)}</span>

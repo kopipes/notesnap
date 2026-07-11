@@ -9,6 +9,7 @@ import { createSlashCommandExtension } from './SlashCommandExtension'
 import AyatDialog from './AyatDialog'
 import CameraPanel from '@/components/camera/CameraPanel'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import CategoryPicker from '@/components/ui/CategoryPicker'
 import { getSettings } from '@/lib/settings'
 import type { Editor } from '@tiptap/react'
 
@@ -79,6 +80,7 @@ interface NoteEditorProps {
   initialTitle: string
   initialSummary?: string | null
   initialCreatedAt?: string | null
+  initialCategoryId?: string | null
   onTitleChange?: (title: string) => void
   onSummaryTrigger?: (fn: () => void) => void
   onCopyNoteTrigger?: (fn: () => void) => void
@@ -88,9 +90,12 @@ interface NoteEditorProps {
 const AUTOSAVE_DELAY = 1000
 
 export default function NoteEditor({
-  noteId, initialContent, initialTitle, initialSummary, initialCreatedAt, onTitleChange, onSummaryTrigger, onCopyNoteTrigger, onNoteCopied,
+  noteId, initialContent, initialTitle, initialSummary, initialCreatedAt, initialCategoryId, onTitleChange, onSummaryTrigger, onCopyNoteTrigger, onNoteCopied,
 }: NoteEditorProps) {
   const [title, setTitle] = useState(initialTitle)
+  const [categoryId, setCategoryId] = useState<string | null>(initialCategoryId ?? null)
+  const [createdAt, setCreatedAt] = useState<string>(initialCreatedAt ?? new Date().toISOString())
+  const [editingDate, setEditingDate] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const [ayatOpen, setAyatOpen] = useState(false)
   const [cameraOpen, setCameraOpen] = useState(false)
@@ -197,6 +202,40 @@ export default function NoteEditor({
     if (titleTimerRef.current) clearTimeout(titleTimerRef.current)
     titleTimerRef.current = setTimeout(() => saveTitle(e.target.value), AUTOSAVE_DELAY)
   }
+
+  const handleCategoryChange = useCallback(async (newCategoryId: string | null) => {
+    setCategoryId(newCategoryId)
+    try {
+      await fetch(`/api/notes/${noteId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categoryId: newCategoryId }),
+      })
+    } catch {
+      showToast('Gagal menyimpan kategori')
+    }
+  }, [noteId, showToast])
+
+  const handleDateChange = useCallback(async (newDate: string) => {
+    // newDate is from <input type="date"> — format YYYY-MM-DD
+    // Preserve original time, just change the date
+    const orig = new Date(createdAt)
+    const [year, month, day] = newDate.split('-').map(Number)
+    orig.setFullYear(year, month - 1, day)
+    const iso = orig.toISOString()
+    setCreatedAt(iso)
+    setEditingDate(false)
+    try {
+      await fetch(`/api/notes/${noteId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ createdAt: iso }),
+      })
+      showToast('Tanggal diperbarui')
+    } catch {
+      showToast('Gagal menyimpan tanggal')
+    }
+  }, [noteId, createdAt, showToast])
 
   const slashExt = useMemo(() => createSlashCommandExtension(() => setAyatOpen(true)), [])
 
@@ -462,16 +501,44 @@ export default function NoteEditor({
             placeholder="Judul catatan"
             className="w-full text-2xl font-bold leading-snug bg-transparent border-none outline-none text-slate-900 dark:text-slate-50 placeholder-slate-200 dark:placeholder-slate-700 tracking-tight"
           />
-          {initialCreatedAt && (
-            <p className="mt-2 text-[11px] font-medium text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+          {/* Date — tappable to edit */}
+          {editingDate ? (
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                type="date"
+                defaultValue={new Date(createdAt).toISOString().slice(0, 10)}
+                autoFocus
+                onBlur={(e) => { if (e.target.value) handleDateChange(e.target.value); else setEditingDate(false) }}
+                onChange={(e) => { if (e.target.value) handleDateChange(e.target.value) }}
+                className="text-xs rounded-lg border border-sky-400 bg-white dark:bg-slate-800 px-2 py-1 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+              />
+              <button type="button" onClick={() => setEditingDate(false)}
+                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                Batal
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setEditingDate(true)}
+              className="mt-2 text-[11px] font-medium text-slate-400 dark:text-slate-500 flex items-center gap-1.5 hover:text-sky-500 dark:hover:text-sky-400 transition-colors group"
+              title="Ketuk untuk ubah tanggal"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
                 <path fillRule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z" clipRule="evenodd" />
               </svg>
-              {new Date(initialCreatedAt).toLocaleDateString('id-ID', {
+              {new Date(createdAt).toLocaleDateString('id-ID', {
                 weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
               })}
-            </p>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z" />
+              </svg>
+            </button>
           )}
+          {/* Category picker — sits below date in title card */}
+          <div className="mt-3">
+            <CategoryPicker value={categoryId} onChange={handleCategoryChange} />
+          </div>
         </div>
 
         {/* Content card */}
@@ -521,7 +588,7 @@ export default function NoteEditor({
             )}
           </div>
 
-          {/* Action buttons — all tight on the right */}
+          {/* Category picker + action buttons */}
           <div className="flex items-center gap-0.5 shrink-0">
 
             {/* Bold */}

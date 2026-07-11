@@ -41,15 +41,22 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     }
 
     const body = await request.json().catch(() => ({}))
-    const data: { title?: string; content?: string; summary?: string | null } = {}
+    const data: { title?: string; content?: string; summary?: string | null; categoryId?: string | null; createdAt?: Date } = {}
     if (typeof body.title === 'string') data.title = body.title
     if (typeof body.content === 'string') data.content = body.content
     if (typeof body.summary === 'string') data.summary = body.summary
     if (body.summary === null) data.summary = null
+    if (typeof body.categoryId === 'string') data.categoryId = body.categoryId
+    if (body.categoryId === null) data.categoryId = null
+    if (typeof body.createdAt === 'string') {
+      const d = new Date(body.createdAt)
+      if (!isNaN(d.getTime())) data.createdAt = d
+    }
 
     const note = await prisma.note.update({
       where: { id: params.id },
       data,
+      include: { category: { select: { id: true, name: true, color: true } } },
     })
     return NextResponse.json(note)
   } catch (error: unknown) {
