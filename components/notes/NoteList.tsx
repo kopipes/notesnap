@@ -17,6 +17,7 @@ type Category = CachedCategory
 
 interface NoteListProps {
   searchQuery?: string
+  grid?: boolean
 }
 
 interface NotesResponse {
@@ -27,7 +28,7 @@ interface NotesResponse {
   totalPages: number
 }
 
-export default function NoteList({ searchQuery = '' }: NoteListProps) {
+export default function NoteList({ searchQuery = '', grid = false }: NoteListProps) {
   const [data, setData] = useState<NotesResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -227,9 +228,9 @@ export default function NoteList({ searchQuery = '' }: NoteListProps) {
         )
       ) : (
         <div className="space-y-4">
-          <div className="space-y-2.5">
+          <div className={grid ? 'grid grid-cols-2 gap-2.5' : 'space-y-2.5'}>
             {data.notes.map((note) => (
-              <NoteCard key={note.id} {...note} />
+              <NoteCard key={note.id} {...note} grid={grid} />
             ))}
           </div>
 
