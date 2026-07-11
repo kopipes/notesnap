@@ -60,6 +60,15 @@ export function buildSlashCommands(onAyat: () => void): SlashCommandItem[] {
       },
     },
     {
+      title: 'To-Do List',
+      description: 'Checklist dengan checkbox',
+      icon: '☑',
+      command: ({ editor }: { editor: ReturnType<typeof import('@tiptap/react').useEditor> }) => {
+        if (!editor) return
+        editor.chain().focus().toggleTaskList().run()
+      },
+    },
+    {
       title: 'Pemisah',
       description: 'Garis horizontal',
       icon: '—',

@@ -3,6 +3,8 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
+import TaskList from '@tiptap/extension-task-list'
+import TaskItem from '@tiptap/extension-task-item'
 import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import { BibleVerseExtension } from './BibleVerseExtension'
 import { createSlashCommandExtension } from './SlashCommandExtension'
@@ -245,6 +247,8 @@ export default function NoteEditor({
     extensions: [
       StarterKit,
       Placeholder.configure({ placeholder: 'Mulai menulis… ketuk / untuk perintah' }),
+      TaskList,
+      TaskItem.configure({ nested: true }),
       BibleVerseExtension,
       slashExt,
     ],

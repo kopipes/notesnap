@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSessionFromRequest } from '@/lib/auth'
 
-interface Params {
-  params: { id: string }
-}
+interface Params { params: { id: string } }
 
 // GET /api/notes/[id]
 export async function GET(req: NextRequest, { params }: Params) {
@@ -15,7 +13,6 @@ export async function GET(req: NextRequest, { params }: Params) {
     const note = await prisma.note.findUnique({ where: { id: params.id } })
     if (!note) return NextResponse.json({ error: 'Note not found' }, { status: 404 })
 
-    // Allow access if owner OR legacy note (empty userId) OR admin
     if (note.userId && note.userId !== session.userId && session.role !== 'admin') {
       return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
     }
@@ -27,7 +24,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   }
 }
 
-// PATCH /api/notes/[id] — update title, content, and/or summary
+// PATCH /api/notes/[id] — update title, content, summary, categoryId, createdAt, pinned, archived
 export async function PATCH(request: NextRequest, { params }: Params) {
   const session = await getSessionFromRequest(request)
   if (!session) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
@@ -41,7 +38,16 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     }
 
     const body = await request.json().catch(() => ({}))
-    const data: { title?: string; content?: string; summary?: string | null; categoryId?: string | null; createdAt?: Date } = {}
+    const data: {
+      title?: string
+      content?: string
+      summary?: string | null
+      categoryId?: string | null
+      createdAt?: Date
+      pinned?: boolean
+      archived?: boolean
+    } = {}
+
     if (typeof body.title === 'string') data.title = body.title
     if (typeof body.content === 'string') data.content = body.content
     if (typeof body.summary === 'string') data.summary = body.summary
@@ -52,6 +58,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       const d = new Date(body.createdAt)
       if (!isNaN(d.getTime())) data.createdAt = d
     }
+    if (typeof body.pinned === 'boolean') data.pinned = body.pinned
+    if (typeof body.archived === 'boolean') data.archived = body.archived
 
     const note = await prisma.note.update({
       where: { id: params.id },
@@ -60,10 +68,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     })
     return NextResponse.json(note)
   } catch (error: unknown) {
-    if (
-      typeof error === 'object' && error !== null && 'code' in error &&
-      (error as { code: string }).code === 'P2025'
-    ) {
+    if (typeof error === 'object' && error !== null && 'code' in error &&
+      (error as { code: string }).code === 'P2025') {
       return NextResponse.json({ error: 'Note not found' }, { status: 404 })
     }
     console.error('[PATCH /api/notes/[id]]', error)
@@ -71,7 +77,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   }
 }
 
-// DELETE /api/notes/[id]
+// DELETE /api/notes/[id] — soft-delete (move to trash)
 export async function DELETE(req: NextRequest, { params }: Params) {
   const session = await getSessionFromRequest(req)
   if (!session) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
@@ -84,13 +90,15 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
     }
 
-    await prisma.note.delete({ where: { id: params.id } })
+    // Soft delete — set deletedAt timestamp
+    await prisma.note.update({
+      where: { id: params.id },
+      data: { deletedAt: new Date(), pinned: false },
+    })
     return new NextResponse(null, { status: 204 })
   } catch (error: unknown) {
-    if (
-      typeof error === 'object' && error !== null && 'code' in error &&
-      (error as { code: string }).code === 'P2025'
-    ) {
+    if (typeof error === 'object' && error !== null && 'code' in error &&
+      (error as { code: string }).code === 'P2025') {
       return NextResponse.json({ error: 'Note not found' }, { status: 404 })
     }
     console.error('[DELETE /api/notes/[id]]', error)
