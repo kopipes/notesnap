@@ -4,7 +4,7 @@ import { getSessionFromRequest } from '@/lib/auth'
 
 interface Params { params: { id: string } }
 
-const MAX_VERSIONS = 50 // keep at most 50 versions per note
+const MAX_VERSIONS = 10 // keep at most 10 versions per note
 
 // GET /api/notes/[id]/versions — list versions (newest first)
 export async function GET(req: NextRequest, { params }: Params) {
