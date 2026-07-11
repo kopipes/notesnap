@@ -20,6 +20,7 @@ interface NoteListProps {
   searchQuery?: string
   grid?: boolean
   view?: ViewMode
+  onCountChange?: () => void
 }
 
 interface NotesResponse {
@@ -30,7 +31,7 @@ interface NotesResponse {
   totalPages: number
 }
 
-export default function NoteList({ searchQuery = '', grid = false, view = 'normal' }: NoteListProps) {
+export default function NoteList({ searchQuery = '', grid = false, view = 'normal', onCountChange }: NoteListProps) {
   const [data, setData] = useState<NotesResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -118,8 +119,9 @@ export default function NoteList({ searchQuery = '', grid = false, view = 'norma
       // Revert on error by refetching
     } finally {
       fetchNotes(page)
+      onCountChange?.()
     }
-  }, [data, page, fetchNotes])
+  }, [data, page, fetchNotes, onCountChange])
 
   const handleCategoryFilter = useCallback((id: string | null) => {
     setActiveCategoryId(prev => prev === id ? null : id)

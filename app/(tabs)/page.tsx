@@ -9,6 +9,8 @@ import { useTheme } from '@/components/ui/ThemeProvider'
 const VIEW_KEY = 'notesnap_view'
 type ListMode = 'normal' | 'archived' | 'trash'
 
+interface NoteCounts { normal: number; archived: number; trash: number }
+
 export default function NotesTab() {
   const router = useRouter()
   const [creating, setCreating] = useState(false)
@@ -16,11 +18,27 @@ export default function NotesTab() {
   const [searchQuery, setSearchQuery] = useState('')
   const [gridView, setGridView] = useState(false)
   const [listMode, setListMode] = useState<ListMode>('normal')
+  const [counts, setCounts] = useState<NoteCounts | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { dark, toggle } = useTheme()
 
   useEffect(() => {
     try { setGridView(localStorage.getItem(VIEW_KEY) === 'grid') } catch {}
+  }, [])
+
+  // Load counts on mount and when visibility changes
+  function fetchCounts() {
+    fetch('/api/notes/counts')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setCounts(d) })
+      .catch(() => {})
+  }
+
+  useEffect(() => {
+    fetchCounts()
+    function handleVisibility() { if (document.visibilityState === 'visible') fetchCounts() }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [])
 
   function toggleView() {
@@ -100,12 +118,20 @@ export default function NotesTab() {
 
           {/* View mode tabs — Normal / Arsip / Sampah */}
           <div className="flex gap-1 pb-2">
-            {([['normal', 'Catatan'], ['archived', 'Arsip'], ['trash', 'Sampah']] as [ListMode, string][]).map(([mode, label]) => (
-              <button key={mode} type="button" onClick={() => { setListMode(mode); setSearchInput(''); setSearchQuery('') }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${listMode === mode ? 'bg-sky-500 text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                {label}
-              </button>
-            ))}
+            {([['normal', 'Catatan'], ['archived', 'Arsip'], ['trash', 'Sampah']] as [ListMode, string][]).map(([mode, label]) => {
+              const count = counts?.[mode]
+              return (
+                <button key={mode} type="button" onClick={() => { setListMode(mode); setSearchInput(''); setSearchQuery('') }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${listMode === mode ? 'bg-sky-500 text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                  {label}
+                  {count != null && count > 0 && (
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${listMode === mode ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
 
           {/* Search bar — only for normal + archived */}
@@ -134,7 +160,7 @@ export default function NotesTab() {
 
       {/* List */}
       <div className="flex-1 max-w-lg mx-auto w-full px-4 py-4">
-        <NoteList searchQuery={searchQuery} grid={gridView && listMode === 'normal'} view={listMode} />
+        <NoteList searchQuery={searchQuery} grid={gridView && listMode === 'normal'} view={listMode} onCountChange={fetchCounts} />
       </div>
 
       {/* FAB — only in normal mode */}
