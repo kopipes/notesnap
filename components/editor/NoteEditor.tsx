@@ -181,6 +181,7 @@ export default function NoteEditor({
   }, [noteId, showToast])
 
   const saveTitle = useCallback(async (val: string) => {
+    if (!isMountedRef.current) return
     if (!navigator.onLine) {
       enqueueSave({ noteId, field: 'title', value: val, ts: Date.now() })
       return
@@ -191,7 +192,7 @@ export default function NoteEditor({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: val }),
       })
-      onTitleChange?.(val)
+      if (isMountedRef.current) onTitleChange?.(val)
     } catch {
       enqueueSave({ noteId, field: 'title', value: val, ts: Date.now() })
     }

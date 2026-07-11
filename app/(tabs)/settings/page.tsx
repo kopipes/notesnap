@@ -53,7 +53,11 @@ export default function SettingsTab() {
   }
 
   async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' })
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch {
+      // ignore network errors — clear session client-side regardless
+    }
     router.replace('/login')
   }
 

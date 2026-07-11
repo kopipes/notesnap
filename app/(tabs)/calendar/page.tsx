@@ -20,22 +20,37 @@ function isSameDay(a: Date, b: Date) {
     a.getDate() === b.getDate()
 }
 
+// Cache dot dates per month to avoid refetching on re-render
+const dotCache = new Map<string, Set<string>>()
+
 export default function CalendarTab() {
   const router = useRouter()
   const today = new Date()
   const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [selectedDate, setSelectedDate] = useState(today)
   const [notes, setNotes] = useState<Note[]>([])
-  const [allNotes, setAllNotes] = useState<Note[]>([])
+  const [dotDates, setDotDates] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
 
-  // Load all notes once for dot indicators
+  const year = viewDate.getFullYear()
+  const month = viewDate.getMonth()
+  const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`
+
+  // Load dot indicators for the current month view — lightweight dates-only endpoint
   useEffect(() => {
-    fetch('/api/notes?page=1&limit=1000')
-      .then(r => r.json())
-      .then((data: { notes: Note[] }) => setAllNotes(data.notes ?? []))
+    if (dotCache.has(monthKey)) {
+      setDotDates(dotCache.get(monthKey)!)
+      return
+    }
+    fetch(`/api/notes/dates?month=${monthKey}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((dates: string[]) => {
+        const s = new Set(dates)
+        dotCache.set(monthKey, s)
+        setDotDates(s)
+      })
       .catch(() => {})
-  }, [])
+  }, [monthKey])
 
   // Load notes for selected date
   const loadNotesForDate = useCallback(async (date: Date) => {
@@ -43,8 +58,9 @@ export default function CalendarTab() {
     try {
       const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
       const res = await fetch(`/api/notes/by-date?date=${dateStr}`)
+      if (!res.ok) { setNotes([]); return }
       const data = await res.json()
-      setNotes(data)
+      setNotes(Array.isArray(data) ? data : [])
     } catch { setNotes([]) }
     finally { setLoading(false) }
   }, [])
@@ -52,8 +68,6 @@ export default function CalendarTab() {
   useEffect(() => { loadNotesForDate(selectedDate) }, [selectedDate, loadNotesForDate])
 
   // Calendar grid
-  const year = viewDate.getFullYear()
-  const month = viewDate.getMonth()
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
 
@@ -61,16 +75,19 @@ export default function CalendarTab() {
     ...Array(firstDay).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ]
-  // Pad to complete last row
   while (cells.length % 7 !== 0) cells.push(null)
 
   function hasDot(day: number) {
-    const d = new Date(year, month, day)
-    return allNotes.some(n => isSameDay(new Date(n.createdAt), d))
+    const utcDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    return dotDates.has(utcDate)
   }
 
-  function prevMonth() { setViewDate(new Date(year, month - 1, 1)) }
-  function nextMonth() { setViewDate(new Date(year, month + 1, 1)) }
+  function prevMonth() {
+    setViewDate(new Date(year, month - 1, 1))
+  }
+  function nextMonth() {
+    setViewDate(new Date(year, month + 1, 1))
+  }
 
   return (
     <div className="flex flex-col min-h-full">

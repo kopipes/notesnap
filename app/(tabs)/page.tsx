@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import NoteList from '@/components/notes/NoteList'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { useTheme } from '@/components/ui/ThemeProvider'
@@ -9,8 +9,17 @@ import { useTheme } from '@/components/ui/ThemeProvider'
 export default function NotesTab() {
   const router = useRouter()
   const [creating, setCreating] = useState(false)
+  const [searchInput, setSearchInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { dark, toggle } = useTheme()
+
+  // Debounce search — 300ms delay before firing API call
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => setSearchQuery(searchInput), 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [searchInput])
 
   async function createNote() {
     if (creating) return
@@ -75,14 +84,14 @@ export default function NotesTab() {
               </svg>
               <input
                 type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
                 placeholder="Cari catatan…"
                 aria-label="Cari catatan"
                 className="w-full pl-9 pr-9 py-2.5 rounded-xl text-sm bg-slate-100 dark:bg-slate-800/80 border border-transparent focus:border-sky-400 dark:focus:border-sky-600 focus:bg-white dark:focus:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all"
               />
-              {searchQuery && (
-                <button type="button" onClick={() => setSearchQuery('')}
+              {searchInput && (
+                <button type="button" onClick={() => { setSearchInput(''); setSearchQuery('') }}
                   aria-label="Hapus pencarian"
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-slate-300 dark:bg-slate-600 text-white hover:bg-slate-400 dark:hover:bg-slate-500 transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5">

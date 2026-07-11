@@ -30,7 +30,9 @@ function LoginForm() {
         return
       }
       const from = searchParams.get('from') || '/'
-      router.replace(from)
+      // Prevent open redirect — only allow relative paths
+      const safeTo = from.startsWith('/') && !from.startsWith('//') ? from : '/'
+      router.replace(safeTo)
     } catch {
       setError('Tidak dapat terhubung ke server')
     } finally {

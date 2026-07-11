@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionFromRequest } from '@/lib/auth'
-import { readFileSync } from 'fs'
+import { readFile } from 'fs/promises'
 import path from 'path'
 
 // GET /api/backup — download the SQLite database file (admin only)
@@ -10,14 +10,13 @@ export async function GET(request: NextRequest) {
   if (session.role !== 'admin') return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
 
   try {
-    // DATABASE_URL is "file:./dev.db" — resolve relative to cwd (prisma dir)
     const dbUrl = process.env.DATABASE_URL ?? 'file:./dev.db'
     const dbPath = dbUrl.replace('file:', '')
     const absolutePath = path.isAbsolute(dbPath)
       ? dbPath
       : path.join(process.cwd(), 'prisma', dbPath)
 
-    const fileBuffer = readFileSync(absolutePath)
+    const fileBuffer = await readFile(absolutePath)
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
     const filename = `notesnap-backup-${timestamp}.db`
 

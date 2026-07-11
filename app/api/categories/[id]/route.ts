@@ -4,6 +4,8 @@ import { getSessionFromRequest } from '@/lib/auth'
 
 interface Params { params: { id: string } }
 
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/
+
 // PATCH /api/categories/[id] — rename or recolor
 export async function PATCH(req: NextRequest, { params }: Params) {
   const session = await getSessionFromRequest(req)
@@ -23,11 +25,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       if (trimmed.length > 50) return NextResponse.json({ error: 'Nama maksimal 50 karakter' }, { status: 400 })
       data.name = trimmed
     }
-    if (typeof body.color === 'string') data.color = body.color.trim()
-
-    if (Object.keys(data).length === 0) {
-      return NextResponse.json({ error: 'Tidak ada perubahan' }, { status: 400 })
+    if (typeof body.color === 'string') {
+      const trimmed = body.color.trim()
+      if (!HEX_COLOR.test(trimmed)) return NextResponse.json({ error: 'Warna tidak valid (gunakan format #rrggbb)' }, { status: 400 })
+      data.color = trimmed
     }
+
+    if (Object.keys(data).length === 0) return NextResponse.json({ error: 'Tidak ada perubahan' }, { status: 400 })
 
     const category = await prisma.category.update({
       where: { id: params.id },
@@ -41,7 +45,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Kategori tidak ditemukan' }, { status: 404 })
     }
     console.error('[PATCH /api/categories/[id]]', error)
-    return NextResponse.json({ error: 'Failed to update category' }, { status: 500 })
+    return NextResponse.json({ error: 'Gagal memperbarui kategori' }, { status: 500 })
   }
 }
 
@@ -63,6 +67,6 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Kategori tidak ditemukan' }, { status: 404 })
     }
     console.error('[DELETE /api/categories/[id]]', error)
-    return NextResponse.json({ error: 'Failed to delete category' }, { status: 500 })
+    return NextResponse.json({ error: 'Gagal menghapus kategori' }, { status: 500 })
   }
 }

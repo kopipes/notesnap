@@ -40,12 +40,16 @@ export default function NotePage({ params }: { params: { id: string } }) {
 
   async function handleDelete() {
     if (!note || !confirm('Hapus catatan ini?')) return
-    const res = await fetch(`/api/notes/${note.id}`, { method: 'DELETE' })
-    if (!res.ok) {
-      alert('Gagal menghapus catatan. Coba lagi.')
-      return
+    try {
+      const res = await fetch(`/api/notes/${note.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        alert('Gagal menghapus catatan. Coba lagi.')
+        return
+      }
+      router.push('/')
+    } catch {
+      alert('Tidak dapat terhubung ke server. Coba lagi.')
     }
-    router.push('/')
   }
 
   return (

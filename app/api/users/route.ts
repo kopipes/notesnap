@@ -9,11 +9,16 @@ export async function GET(request: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
   if (session.role !== 'admin') return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
 
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: 'asc' },
-    select: { id: true, username: true, role: true, createdAt: true },
-  })
-  return NextResponse.json(users)
+  try {
+    const users = await prisma.user.findMany({
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, username: true, role: true, createdAt: true },
+    })
+    return NextResponse.json(users)
+  } catch (error) {
+    console.error('[GET /api/users]', error)
+    return NextResponse.json({ error: 'Gagal memuat pengguna' }, { status: 500 })
+  }
 }
 
 // POST /api/users — create a new user (admin only)
