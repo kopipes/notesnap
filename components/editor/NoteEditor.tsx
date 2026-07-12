@@ -14,6 +14,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import CategoryPicker from '@/components/ui/CategoryPicker'
 import { getSettings } from '@/lib/settings'
 import { parseSummarySections, formatSummaryForShare, SECTION_ORDER, SECTION_LABELS } from '@/lib/summary'
+import { UI_SCALE_VALUES, type UiScale } from '@/lib/settings'
 import type { Editor } from '@tiptap/react'
 
 // ─── Offline save queue ───────────────────────────────────────────────────────
@@ -112,6 +113,7 @@ export default function NoteEditor({
   const [versions, setVersions] = useState<{ id: string; title: string; label: string | null; createdAt: string }[]>([])
   const [versionsLoading, setVersionsLoading] = useState(false)
   const [previewVersion, setPreviewVersion] = useState<{ id: string; title: string; content: string; createdAt: string } | null>(null)
+  const [uiScale, setUiScale] = useState<UiScale>('normal')
   const snapshotTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [summaryError, setSummaryError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -127,6 +129,7 @@ export default function NoteEditor({
   // Online/offline detection — flush queued saves when back online
   useEffect(() => {
     setIsOnline(navigator.onLine)
+    setUiScale(getSettings().uiScale)
     const handleOnline = () => { setIsOnline(true); flushQueue() }
     const handleOffline = () => setIsOnline(false)
     window.addEventListener('online', handleOnline)
@@ -596,7 +599,8 @@ export default function NoteEditor({
           paddingBottom: `max(env(safe-area-inset-bottom, 12px), 12px)`,
         }}
       >
-        <div className="max-w-2xl mx-auto px-4 pt-2.5 flex items-center justify-between gap-2">
+        <div className="max-w-2xl mx-auto px-4 pt-2.5 flex items-center justify-between gap-2"
+          style={{ fontSize: `${UI_SCALE_VALUES[uiScale]}em` }}>
           {/* Save status + word count */}
           <div className="flex items-center gap-2 select-none shrink-0">
             {/* Word count + reading time */}

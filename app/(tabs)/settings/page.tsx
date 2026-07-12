@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSettings, saveSettings, clearSettings, type AppSettings, CAMERA_MODES, type CameraMode } from '@/lib/settings'
+import { getSettings, saveSettings, clearSettings, type AppSettings, CAMERA_MODES, type CameraMode, type UiScale } from '@/lib/settings'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 async function triggerBackup() {
@@ -29,6 +29,7 @@ export default function SettingsTab() {
     geminiBaseUrl: 'https://ai.sumopod.com',
     cameraMode: 'balanced',
     darkMode: false,
+    uiScale: 'normal',
   })
   const [saved, setSaved] = useState(false)
   const [showKey, setShowKey] = useState(false)
@@ -154,6 +155,51 @@ export default function SettingsTab() {
                 : 'Simpan'
               }
             </button>
+          </div>
+        </div>
+
+        {/* UI Scale */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-500 dark:text-slate-400">
+                <path fillRule="evenodd" d="M3 6a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 6zm0 4.5a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10.5zm0 4.5a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H3.75A.75.75 0 013 15z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Ukuran Antarmuka</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">Toolbar dan top bar saat menulis catatan</p>
+            </div>
+          </div>
+          <div className="px-5 py-4">
+            <div className="grid grid-cols-3 gap-2">
+              {([
+                { id: 'normal', label: 'Normal', hint: '100%' },
+                { id: 'large', label: 'Besar', hint: '115%' },
+                { id: 'larger', label: 'Lebih Besar', hint: '130%' },
+              ] as { id: UiScale; label: string; hint: string }[]).map(opt => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => {
+                    const newForm = { ...form, uiScale: opt.id }
+                    setForm(newForm)
+                    saveSettings(newForm)
+                  }}
+                  className={`flex flex-col items-center gap-1 px-3 py-3 rounded-xl border-2 transition-all ${
+                    form.uiScale === opt.id
+                      ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/50'
+                      : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                >
+                  <span className={`font-bold leading-none ${
+                    opt.id === 'normal' ? 'text-base' : opt.id === 'large' ? 'text-lg' : 'text-xl'
+                  } ${form.uiScale === opt.id ? 'text-sky-600 dark:text-sky-400' : 'text-slate-700 dark:text-slate-300'}`}>A</span>
+                  <span className={`text-xs font-medium mt-0.5 ${form.uiScale === opt.id ? 'text-sky-600 dark:text-sky-400' : 'text-slate-600 dark:text-slate-400'}`}>{opt.label}</span>
+                  <span className={`text-[10px] ${form.uiScale === opt.id ? 'text-sky-400 dark:text-sky-500' : 'text-slate-400 dark:text-slate-500'}`}>{opt.hint}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import NoteEditor from '@/components/editor/NoteEditor'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { invalidateNotesCache } from '@/lib/notesCache'
+import { getSettings } from '@/lib/settings'
+import { UI_SCALE_VALUES, type UiScale } from '@/lib/settings'
 
 interface Note {
   id: string
@@ -24,6 +26,11 @@ export default function NotePage({ params }: { params: { id: string } }) {
   const triggerSummaryRef = useRef<(() => void) | null>(null)
   const triggerCopyNoteRef = useRef<(() => void) | null>(null)
   const [copiedNote, setCopiedNote] = useState(false)
+  const [uiScale, setUiScale] = useState<UiScale>('normal')
+
+  useEffect(() => {
+    setUiScale(getSettings().uiScale)
+  }, [])
 
   useEffect(() => {
     fetch(`/api/notes/${params.id}`)
@@ -56,7 +63,8 @@ export default function NotePage({ params }: { params: { id: string } }) {
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Sticky top nav — same pattern as catatan tab */}
       <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 safe-top shrink-0">
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
+          <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-2"
+            style={{ fontSize: `${UI_SCALE_VALUES[uiScale]}em` }}>
 
           {/* Back button */}
           <button

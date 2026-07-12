@@ -56,11 +56,20 @@ export function getCameraModeConfig(mode: CameraMode): CameraModeConfig {
   return CAMERA_MODES.find(m => m.id === mode) ?? CAMERA_MODES[1]
 }
 
+export type UiScale = 'normal' | 'large' | 'larger'
+
+export const UI_SCALE_VALUES: Record<UiScale, number> = {
+  normal: 1,
+  large: 1.15,
+  larger: 1.30,
+}
+
 export interface AppSettings {
   geminiApiKey: string
   geminiBaseUrl: string
   cameraMode: CameraMode
   darkMode: boolean
+  uiScale: UiScale
 }
 
 const STORAGE_KEY = 'notesnap_settings'
@@ -70,6 +79,7 @@ const DEFAULTS: AppSettings = {
   geminiBaseUrl: 'https://ai.sumopod.com',
   cameraMode: 'balanced',
   darkMode: false,
+  uiScale: 'normal',
 }
 
 export function getSettings(): AppSettings {
@@ -83,6 +93,7 @@ export function getSettings(): AppSettings {
       geminiBaseUrl: parsed.geminiBaseUrl || DEFAULTS.geminiBaseUrl,
       cameraMode: (parsed.cameraMode as CameraMode) || DEFAULTS.cameraMode,
       darkMode: parsed.darkMode ?? DEFAULTS.darkMode,
+      uiScale: (parsed.uiScale as UiScale) || DEFAULTS.uiScale,
     }
   } catch {
     return { ...DEFAULTS }
