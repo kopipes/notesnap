@@ -5,6 +5,8 @@ import { useState, useEffect, useRef } from 'react'
 import NoteList from '@/components/notes/NoteList'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { useTheme } from '@/components/ui/ThemeProvider'
+import { getSettings } from '@/lib/settings'
+import { UI_SCALE_VALUES, type UiScale } from '@/lib/settings'
 
 const VIEW_KEY = 'notesnap_view'
 type ListMode = 'normal' | 'archived' | 'trash'
@@ -21,6 +23,11 @@ export default function NotesTab() {
   const [counts, setCounts] = useState<NoteCounts | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { dark, toggle } = useTheme()
+  const [uiScale, setUiScale] = useState<UiScale>('normal')
+
+  useEffect(() => {
+    setUiScale(getSettings().uiScale)
+  }, [])
 
   useEffect(() => {
     try { setGridView(localStorage.getItem(VIEW_KEY) === 'grid') } catch {}
@@ -77,7 +84,7 @@ export default function NotesTab() {
     <div className="flex flex-col min-h-full">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60">
-        <div className="max-w-lg mx-auto px-5 safe-top">
+        <div className="max-w-lg mx-auto px-5 safe-top" style={{ fontSize: `${UI_SCALE_VALUES[uiScale]}em` }}>
           {/* Title row */}
           <div className="h-14 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
