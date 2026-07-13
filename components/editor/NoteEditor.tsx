@@ -683,6 +683,22 @@ export default function NoteEditor({
               Wrap
             </button>
 
+            {/* Bullet List */}
+            <button type="button" onClick={() => editor?.chain().focus().toggleBulletList().run()} aria-label="Bullet list"
+              className={`w-8 h-8 rounded-xl transition-colors flex items-center justify-center ${editor?.isActive('bulletList') ? 'bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                <path fillRule="evenodd" d="M2.625 6.75a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Zm4.875 0a.75.75 0 0 1 .75-.75h12a.75.75 0 0 1 0 1.5h-12a.75.75 0 0 1-.75-.75ZM2.625 12a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0ZM7.5 12a.75.75 0 0 1 .75-.75h12a.75.75 0 0 1 0 1.5h-12A.75.75 0 0 1 7.5 12Zm-4.875 5.25a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Zm4.875 0a.75.75 0 0 1 .75-.75h12a.75.75 0 0 1 0 1.5h-12a.75.75 0 0 1-.75-.75Z" clipRule="evenodd" />
+              </svg>
+            </button>
+
+            {/* Ordered List */}
+            <button type="button" onClick={() => editor?.chain().focus().toggleOrderedList().run()} aria-label="Ordered list"
+              className={`w-8 h-8 rounded-xl transition-colors flex items-center justify-center ${editor?.isActive('orderedList') ? 'bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                <path fillRule="evenodd" d="M3 6a.75.75 0 0 1 .75-.75h.375a.375.375 0 0 1 .375.375V9h.375a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1 0-1.5h.375V6.375H3.75A.75.75 0 0 1 3 6Zm0 6a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 .53 1.28L4.5 13.5h.75a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.53-1.28l1.28-1.22H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 .75.75v.375c0 .207-.168.375-.375.375H4.5v.375c0 .207.168.375.375.375H5.25a.75.75 0 0 1 0 1.5H4.875A1.875 1.875 0 0 1 3 18.75v-.375c0-.621.504-1.125 1.125-1.125h.375v-.375A.75.75 0 0 1 3 17.25ZM7.5 6.75a.75.75 0 0 1 .75-.75h12a.75.75 0 0 1 0 1.5h-12a.75.75 0 0 1-.75-.75Zm0 6a.75.75 0 0 1 .75-.75h12a.75.75 0 0 1 0 1.5h-12a.75.75 0 0 1-.75-.75Zm0 5.25a.75.75 0 0 1 .75-.75h12a.75.75 0 0 1 0 1.5h-12a.75.75 0 0 1-.75-.75Z" clipRule="evenodd" />
+              </svg>
+            </button>
+
             {/* Divider */}
             <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
 
